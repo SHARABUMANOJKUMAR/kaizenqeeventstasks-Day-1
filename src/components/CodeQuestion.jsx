@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { loader } from '@monaco-editor/react';
+
+// Configure Monaco Editor to use UNPKG instead of jsDelivr to prevent loading issues in some regions
+loader.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs' } });
 import ReactMarkdown from 'react-markdown';
 import { Terminal, Play, Loader2 } from 'lucide-react';
 
@@ -26,7 +29,7 @@ const CodeQuestion = ({ question, currentAnswer, onAnswer }) => {
           await new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.id = 'pyodide-script';
-            script.src = "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
+            script.src = "https://unpkg.com/pyodide@0.25.0/pyodide.js";
             script.onload = resolve;
             script.onerror = () => reject(new Error("Failed to load Python execution environment. Please check your internet connection."));
             document.head.appendChild(script);
@@ -34,7 +37,7 @@ const CodeQuestion = ({ question, currentAnswer, onAnswer }) => {
         }
          
         window.pyodide = await window.loadPyodide({
-          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
+          indexURL: "https://unpkg.com/pyodide@0.25.0/"
         });
       }
 

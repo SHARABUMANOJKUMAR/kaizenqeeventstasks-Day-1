@@ -10,11 +10,11 @@ const MCQQuestion = ({ question, currentAnswer, onAnswer }) => {
     code({node, inline, className, children, ...props}) {
       const match = /language-(\w+)/.exec(className || '')
       return !inline ? (
-        <div className="bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded-xl overflow-x-auto text-sm font-mono my-4 shadow-inner">
+        <span className="block bg-[#1e1e1e] text-[#d4d4d4] p-4 rounded-xl overflow-x-auto text-sm font-mono my-4 shadow-inner">
           <code className={className} {...props}>
             {children}
           </code>
-        </div>
+        </span>
       ) : (
         <code className="bg-gray-100 text-primary-700 px-1.5 py-0.5 rounded font-mono text-sm" {...props}>
           {children}
