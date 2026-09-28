@@ -4,12 +4,12 @@ export const day1Questions = [
     type: "mcq",
     question: "What will be the output of the following Python code?\n\n```python\nprint(type(5 / 2))\n```",
     options: [
-      "<class 'int'>",
-      "<class 'float'>",
-      "<class 'double'>",
-      "<class 'number'>"
+      "`<class 'int'>`",
+      "`<class 'float'>`",
+      "`<class 'double'>`",
+      "`<class 'number'>`"
     ],
-    correctAnswer: "<class 'float'>",
+    correctAnswer: "`<class 'float'>`",
     marks: 1
   },
   {

@@ -19,6 +19,7 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
   const [answers, setAnswers] = useState(initialData?.answers || {});
   const [timeRemaining, setTimeRemaining] = useState(initialData?.timeRemaining || TOTAL_TIME);
   const [visited, setVisited] = useState(initialData?.visited || [0]);
+  const [violations, setViolations] = useState(initialData?.violations || []);
   
   const [showReview, setShowReview] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -30,10 +31,88 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
     const dataToSave = {
       answers,
       timeRemaining,
-      visited
+      visited,
+      violations
     };
     localStorage.setItem('kq_assessment', JSON.stringify(dataToSave));
-  }, [answers, timeRemaining, visited]);
+  }, [answers, timeRemaining, visited, violations]);
+
+  // Anti-Cheat System (No Copy, No Right-Click, No Screenshots/Print, Tab Tracking)
+  useEffect(() => {
+    const recordViolation = (type) => {
+      setViolations(prev => [...prev, { type, timestamp: new Date().toISOString() }]);
+    };
+
+    // 1. Prevent Right-Click
+    const preventContextMenu = (e) => {
+      e.preventDefault();
+      recordViolation('RIGHT_CLICK_ATTEMPT');
+    };
+    
+    // 2. Prevent Copy, Cut, Paste
+    const preventCopyPaste = (e) => {
+      e.preventDefault();
+      recordViolation(`${e.type.toUpperCase()}_ATTEMPT`);
+      alert("Copy/Paste is disabled during the assessment.");
+    };
+
+    // 3. Prevent Keyboard Shortcuts (PrintScreen, Ctrl+C, Ctrl+P, Ctrl+S, Win+Shift+S)
+    const preventShortcuts = (e) => {
+      // PrintScreen key
+      if (e.key === 'PrintScreen' || e.keyCode === 44) {
+        navigator.clipboard.writeText(''); // clear clipboard
+        recordViolation('PRINTSCREEN_ATTEMPT');
+        alert("Screenshots are disabled.");
+        e.preventDefault();
+      }
+
+      // Meta/Win + Shift + S (Snippet tool on Windows/Mac)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 's') {
+        navigator.clipboard.writeText('');
+        recordViolation('SCREENSHOT_SHORTCUT_ATTEMPT');
+        alert("Screenshots are disabled.");
+        e.preventDefault();
+      }
+      
+      // Ctrl/Cmd + shortcuts
+      if (e.ctrlKey || e.metaKey) {
+        const forbiddenKeys = ['c', 'v', 'x', 'p', 's'];
+        if (forbiddenKeys.includes(e.key.toLowerCase())) {
+          e.preventDefault();
+          recordViolation(`KEYBOARD_SHORTCUT_${e.key.toUpperCase()}`);
+          if (e.key.toLowerCase() !== 'v') { // paste has its own alert
+            alert("This shortcut is disabled during the assessment.");
+          }
+        }
+      }
+    };
+
+    // 4. Track Tab Switching (Visibility API)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        recordViolation('TAB_SWITCH_MINIMIZE');
+        alert("Warning: Switching tabs or minimizing the window is recorded as suspicious activity during the assessment.");
+      }
+    };
+
+    // Add Listeners
+    document.addEventListener("contextmenu", preventContextMenu);
+    document.addEventListener("copy", preventCopyPaste);
+    document.addEventListener("cut", preventCopyPaste);
+    document.addEventListener("paste", preventCopyPaste);
+    document.addEventListener("keydown", preventShortcuts);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("contextmenu", preventContextMenu);
+      document.removeEventListener("copy", preventCopyPaste);
+      document.removeEventListener("cut", preventCopyPaste);
+      document.removeEventListener("paste", preventCopyPaste);
+      document.removeEventListener("keydown", preventShortcuts);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   const handleAnswer = (questionId, answer) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
@@ -90,6 +169,7 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
       maxScore,
       timeRemaining,
       timeTaken: TOTAL_TIME - timeRemaining,
+      violations
     };
 
     try {

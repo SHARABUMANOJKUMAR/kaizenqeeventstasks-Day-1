@@ -5,13 +5,15 @@ const AssessmentHeader = ({ studentName, timeRemaining, setTimeRemaining, onTime
   return (
     <header className="bg-white shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="hidden md:block">
-            <h1 className="text-primary font-bold text-lg leading-tight">KAIZEN Q LMS</h1>
+        <div className="flex items-center gap-4">
+          <img 
+            src="https://res.cloudinary.com/dwv8kc9vb/image/upload/v1788465282/KAIZEN_Q_EVENTS_kxjtz4.png" 
+            alt="Kaizen Q Bootcamps" 
+            className="h-10 w-auto object-contain"
+          />
+          <div className="hidden md:block border-l-2 border-gray-200 pl-4 ml-1">
+            <h1 className="text-primary font-bold text-lg leading-tight">KAIZEN Q BOOTCAMPS</h1>
             <p className="text-xs text-text-muted">Python with AI</p>
-          </div>
-          <div className="md:hidden">
-            <h1 className="text-primary font-bold text-md">Kaizen Q</h1>
           </div>
         </div>
 

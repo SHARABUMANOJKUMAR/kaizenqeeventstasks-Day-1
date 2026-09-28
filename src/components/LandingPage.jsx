@@ -19,10 +19,10 @@ const LandingPage = () => {
         className="max-w-3xl w-full z-10 text-center"
       >
         <div className="mb-6 inline-flex items-center justify-center p-4 bg-white rounded-2xl shadow-soft">
-          <Code2 size={48} className="text-primary" />
+          <img src="https://res.cloudinary.com/dwv8kc9vb/image/upload/v1788465282/KAIZEN_Q_EVENTS_kxjtz4.png" alt="Kaizen Q Bootcamps" className="h-16 w-auto object-contain" />
         </div>
         
-        <h2 className="text-primary font-semibold tracking-wider uppercase mb-2">Kaizen Q LMS</h2>
+        <h2 className="text-primary font-semibold tracking-wider uppercase mb-2">Kaizen Q Bootcamps</h2>
         <h1 className="text-4xl md:text-6xl font-bold text-text-main mb-4 leading-tight">
           Python with AI Bootcamp
         </h1>
