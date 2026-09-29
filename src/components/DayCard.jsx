@@ -12,7 +12,7 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
       whileHover={!isDisabled ? { y: -6, scale: 1.01 } : {}}
       whileTap={!isDisabled ? { scale: 0.99 } : {}}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className={`relative bg-surface rounded-2xl p-6 md:p-7 shadow-soft border transition-all duration-300 flex flex-col justify-between overflow-hidden group
+      className={`relative bg-surface rounded-2xl p-5 sm:p-6 shadow-soft border transition-all duration-300 flex flex-col justify-between overflow-hidden group h-full
         ${isClosed ? 'border-gray-200 opacity-85 bg-gray-50/40' : ''}
         ${isLocked ? 'border-gray-200/80 opacity-75 bg-gray-50/30' : ''}
         ${!isDisabled && isCompleted ? 'border-emerald-200 shadow-emerald-500/5' : ''}
@@ -24,9 +24,9 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
         <div className={`absolute top-0 right-0 w-48 h-48 bg-gradient-to-br ${day.theme.glowBg} rounded-full blur-2xl pointer-events-none transform translate-x-12 -translate-y-12 transition-opacity group-hover:opacity-100 opacity-60`} />
       )}
 
-      <div>
+      <div className="flex-1 flex flex-col">
         {/* Top bar: Day label + Status */}
-        <div className="flex items-center justify-between gap-2 mb-4 relative z-10">
+        <div className="flex items-center justify-between gap-2 mb-3 relative z-10">
           <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${day.theme.badgeBg} ${day.theme.badgeText}`}>
             <Sparkles size={12} />
             Day {day.dayNumber}
@@ -56,34 +56,34 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
         </div>
 
         {/* Title */}
-        <h3 className={`text-xl md:text-2xl font-bold mb-2.5 tracking-tight transition-colors relative z-10
+        <h3 className={`text-xl md:text-2xl font-bold mb-2 tracking-tight transition-colors relative z-10
           ${isDisabled ? 'text-gray-700' : 'text-text-main group-hover:text-primary'}
         `}>
           {day.title}
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-text-muted mb-5 leading-relaxed relative z-10">
+        <p className="text-sm text-text-muted mb-4 leading-relaxed relative z-10">
           {day.description}
         </p>
 
         {/* Closed / Coming soon banner note */}
         {isClosed && (
-          <div className="mb-5 p-2.5 rounded-xl bg-gray-100/90 border border-gray-200 text-xs text-gray-600 flex items-center gap-2">
+          <div className="mb-4 p-2.5 rounded-xl bg-gray-100/90 border border-gray-200 text-xs text-gray-600 flex items-center gap-2">
             <AlertCircle size={15} className="text-gray-500 shrink-0" />
             <span>Task completed. Submissions closed.</span>
           </div>
         )}
 
         {isLocked && (
-          <div className="mb-5 p-2.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-500 flex items-center gap-2">
+          <div className="mb-4 p-2.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-500 flex items-center gap-2">
             <Lock size={14} className="text-gray-400 shrink-0" />
             <span>Unlocks on scheduled day.</span>
           </div>
         )}
 
         {/* Topics Pills */}
-        <div className="mb-6 relative z-10">
+        <div className="mt-auto pt-2 mb-5 relative z-10">
           <p className="text-xs font-semibold uppercase tracking-wider text-text-muted mb-2">
             Topics Covered
           </p>
