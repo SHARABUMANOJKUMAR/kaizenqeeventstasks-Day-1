@@ -7,11 +7,21 @@ import SuccessPage from './components/SuccessPage';
 import MentorDashboard from './components/MentorDashboard';
 import NotFound from './components/NotFound';
 
-// Wrapper for protected Day Assessment route that redirects to register with return path
+// Wrapper for protected Day Assessment route that blocks locked upcoming days and guards registration
 function DayRouteWrapper({ studentData, onComplete }) {
   const location = useLocation();
   const params = useParams();
-  const dayId = params.dayId || 1;
+  const dayId = parseInt(params.dayId || 1, 10);
+
+  // Strictly block upcoming days (Day 3, 4, 5)
+  if (dayId > 2 || isNaN(dayId)) {
+    return (
+      <NotFound 
+        message={`Day ${params.dayId || ''}: Access Restricted`}
+        subtitle="This assessment is locked and not accessible yet. Only Day 1 and Day 2 are currently open!"
+      />
+    );
+  }
 
   if (!studentData) {
     return <Navigate to={`/register?redirect=${encodeURIComponent(location.pathname)}`} replace />;
