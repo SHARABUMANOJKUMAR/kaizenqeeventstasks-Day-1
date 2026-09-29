@@ -1,63 +1,115 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './components/LandingPage';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import BootcampHome from './components/BootcampHome';
 import RegistrationPage from './components/RegistrationPage';
 import AssessmentPage from './components/AssessmentPage';
 import SuccessPage from './components/SuccessPage';
 import MentorDashboard from './components/MentorDashboard';
+import NotFound from './components/NotFound';
+
+// Wrapper for protected Day Assessment route that redirects to register with return path
+function DayRouteWrapper({ studentData, onComplete }) {
+  const location = useLocation();
+  const params = useParams();
+  const dayId = params.dayId || 1;
+
+  if (!studentData) {
+    return <Navigate to={`/register?redirect=${encodeURIComponent(location.pathname)}`} replace />;
+  }
+
+  return (
+    <AssessmentPage 
+      studentData={studentData} 
+      onComplete={onComplete}
+    />
+  );
+}
 
 function App() {
-  const [studentData, setStudentData] = useState(null);
-  const [assessmentData, setAssessmentData] = useState(null);
-
-  // Load from local storage
-  useEffect(() => {
-    const savedStudent = localStorage.getItem('kq_student');
-    const savedAssessment = localStorage.getItem('kq_assessment');
-    
-    if (savedStudent) setStudentData(JSON.parse(savedStudent));
-    if (savedAssessment) setAssessmentData(JSON.parse(savedAssessment));
-  }, []);
+  const [studentData, setStudentData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('kq_student');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const handleRegistration = (data) => {
     setStudentData(data);
     localStorage.setItem('kq_student', JSON.stringify(data));
   };
 
-  const handleAssessmentComplete = (data) => {
-    // Clear local storage on complete, unless we want them to see success page repeatedly
-    localStorage.removeItem('kq_student');
-    localStorage.removeItem('kq_assessment');
-    setStudentData(null);
-    setAssessmentData(null);
+  const handleAssessmentComplete = (dayId) => {
+    // Preserve student identity across all 5 days!
+    // Individual day drafts are cleared inside AssessmentPage.
   };
 
   return (
     <Router>
       <div className="min-h-screen bg-background font-sans text-text-main">
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          {/* 5-Day Bootcamp Home */}
+          <Route path="/" element={<BootcampHome studentData={studentData} />} />
+          
+          {/* One-Time Student Registration */}
           <Route 
             path="/register" 
-            element={<RegistrationPage onRegister={handleRegistration} />} 
-          />
-          <Route 
-            path="/assessment" 
             element={
-              studentData ? (
-                <AssessmentPage 
-                  studentData={studentData} 
-                  initialData={assessmentData}
-                  onComplete={handleAssessmentComplete}
-                />
-              ) : (
-                <Navigate to="/register" replace />
-              )
+              <RegistrationPage 
+                onRegister={handleRegistration} 
+                initialStudentData={studentData} 
+              />
             } 
           />
+
+          {/* Dynamic Day Assessments: /day/1, /day/2, /day/3, /day/4, /day/5 */}
+          <Route 
+            path="/day/:dayId" 
+            element={
+              <DayRouteWrapper 
+                studentData={studentData} 
+                onComplete={handleAssessmentComplete}
+              />
+            } 
+          />
+
+          {/* Alternate route pattern: /day1, /day2, etc. */}
+          <Route 
+            path="/day1" 
+            element={<Navigate to="/day/1" replace />} 
+          />
+          <Route 
+            path="/day2" 
+            element={<Navigate to="/day/2" replace />} 
+          />
+          <Route 
+            path="/day3" 
+            element={<Navigate to="/day/3" replace />} 
+          />
+          <Route 
+            path="/day4" 
+            element={<Navigate to="/day/4" replace />} 
+          />
+          <Route 
+            path="/day5" 
+            element={<Navigate to="/day/5" replace />} 
+          />
+
+          {/* Backward compatibility for legacy /assessment route */}
+          <Route 
+            path="/assessment" 
+            element={<Navigate to="/day/1" replace />} 
+          />
+
+          {/* Assessment Completion / Success Page */}
           <Route path="/success" element={<SuccessPage />} />
+
+          {/* Mentor Dashboard */}
           <Route path="/mentor" element={<MentorDashboard />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+
+          {/* Catch-all Not Found Route */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>

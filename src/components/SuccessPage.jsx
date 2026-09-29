@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Home, Star, Target, Lightbulb } from 'lucide-react';
+import { CheckCircle2, Home, Star, Target, Lightbulb, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
+import { getDayConfig } from '../data/bootcampDays';
 
 const SuccessPage = () => {
   const navigate = useNavigate();
@@ -26,15 +27,20 @@ const SuccessPage = () => {
     return () => window.removeEventListener('resize', detectSize);
   }, []);
 
-  // Prevent showing success page if they just navigated here directly without submitting
+  // Prevent showing success page if they navigated here directly without submitting
   if (!state) {
     return <Navigate to="/" replace />;
   }
 
   const name = state?.studentName || 'Student';
+  const dayId = state?.dayId || 1;
+  const dayConfig = getDayConfig(dayId);
+  const nextDayId = dayId < 5 ? dayId + 1 : null;
+  const score = state?.score ?? 0;
+  const maxScore = state?.maxScore ?? 17;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-[#eff6ff] via-white to-[#f5f3ff] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-[#eff6ff] via-white to-[#f5f3ff] relative overflow-hidden">
       <Confetti
         width={windowDimension.width}
         height={windowDimension.height}
@@ -45,85 +51,104 @@ const SuccessPage = () => {
       />
       
       {/* Background blobs for aesthetics */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-3xl opacity-60 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-100 rounded-full blur-3xl opacity-60 transform translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-3xl opacity-60 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-100 rounded-full blur-3xl opacity-60 transform translate-x-1/2 translate-y-1/2 pointer-events-none" />
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        initial={{ opacity: 0, scale: 0.85, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.7, type: "spring", bounce: 0.4 }}
-        className="max-w-3xl w-full z-10"
+        transition={{ duration: 0.7, type: "spring", bounce: 0.3 }}
+        className="max-w-2xl w-full z-10 my-8"
       >
-        <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 p-8 md:p-12 overflow-hidden relative">
+        <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-gray-100 p-6 sm:p-10 md:p-12 overflow-hidden relative">
           
           <motion.div 
             initial={{ scale: 0, rotate: -45 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 12 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 12 }}
             className="flex justify-center mb-6"
           >
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-purple-200">
-              <CheckCircle2 size={48} className="text-white" />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-200">
+              <CheckCircle2 size={44} className="text-white" />
             </div>
           </motion.div>
 
-          <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
-              🎊 Congratulations! Task Submitted Successfully! 🚀
+          {/* Day Completion Header */}
+          <div className="text-center mb-8">
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
+              ✓ Day {dayId} Completed
+            </span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+              Assessment Submitted Successfully! 🚀
             </h2>
-            <div className="text-gray-600 text-lg md:text-xl space-y-4 leading-relaxed">
-              <p>Dear <span className="font-bold text-gray-800">{name}</span>,</p>
-              <p>Thank you for actively participating in our <strong>Python with AI Bootcamp</strong> and successfully submitting your task!</p>
-              <p>Your enthusiasm, dedication, and willingness to learn are the first steps toward a bright and successful future. 🌟</p>
-              <p className="font-semibold text-purple-700 bg-purple-50 inline-block px-4 py-2 rounded-lg">
-                ✨ Keep Learning. Keep Building. Keep Growing!
-              </p>
-              <p>Believe in yourself, explore new technologies, and never stop improving. Every small step you take today brings you closer to your dreams.</p>
-              <p className="font-bold text-blue-700">Your future is full of possibilities. Keep shining! 💙</p>
+            <p className="text-text-muted text-sm sm:text-base">
+              {dayConfig?.title || `Day ${dayId} Assessment`}
+            </p>
+          </div>
+
+          {/* Student Greeting */}
+          <div className="text-gray-600 text-sm sm:text-base space-y-2 mb-8 text-center">
+            <p>Dear <span className="font-bold text-gray-800">{name}</span>,</p>
+            <p>Fantastic work! Your assessment for <strong>Day {dayId}</strong> has been received and securely recorded.</p>
+          </div>
+
+          {/* Score & Evaluation Card */}
+          <div className="bg-gradient-to-br from-gray-50 to-primary-50/30 rounded-2xl p-5 sm:p-6 border border-gray-200/80 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+              
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs">
+                <span className="text-xs uppercase font-semibold tracking-wider text-text-muted block mb-1">
+                  Objective Score
+                </span>
+                <span className="text-3xl sm:text-4xl font-extrabold text-emerald-600 font-mono">
+                  {score} <span className="text-lg text-text-muted font-normal">/ {maxScore}</span>
+                </span>
+                <span className="text-xs text-emerald-700 block mt-1 font-medium">
+                  {Math.round((score / (maxScore || 1)) * 100)}% Accuracy
+                </span>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-xs flex flex-col justify-center">
+                <span className="text-xs uppercase font-semibold tracking-wider text-text-muted block mb-1">
+                  Programming Tasks
+                </span>
+                <span className="text-lg sm:text-xl font-bold text-amber-600">
+                  Pending Evaluation
+                </span>
+                <span className="text-xs text-text-muted block mt-1">
+                  Mentors will review your code
+                </span>
+              </div>
+
             </div>
           </div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10"
-          >
-            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-blue-50 transition-colors">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-3 text-blue-600 group-hover:scale-110 transition-transform">
-                <Target size={20} />
-              </div>
-              <h4 className="font-bold text-gray-800 text-sm mb-1">Task Status</h4>
-              <p className="text-sm text-gray-600">Submitted Successfully</p>
-            </div>
-            
-            <div className="bg-purple-50/50 border border-purple-100 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-purple-50 transition-colors">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mb-3 text-purple-600 group-hover:scale-110 transition-transform">
-                <Star size={20} />
-              </div>
-              <h4 className="font-bold text-gray-800 text-sm mb-1">Achievement</h4>
-              <p className="text-sm text-gray-600">One More Step Towards Your Dream!</p>
-            </div>
+          {/* Motivation Quote */}
+          <div className="bg-indigo-50/60 border-l-4 border-primary p-4 rounded-r-xl mb-8 text-xs sm:text-sm text-indigo-950 italic">
+            &ldquo;Great developers are not born; they are built through continuous learning and daily practice.&rdquo;
+          </div>
 
-            <div className="bg-indigo-50/50 border border-indigo-100 rounded-2xl p-5 flex flex-col items-center text-center group hover:bg-indigo-50 transition-colors">
-              <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mb-3 text-indigo-600 group-hover:scale-110 transition-transform">
-                <Lightbulb size={20} />
-              </div>
-              <h4 className="font-bold text-gray-800 text-sm mb-1">Motivation</h4>
-              <p className="text-xs text-gray-600 italic">"Great developers are not born; they are built through continuous learning and practice."</p>
-            </div>
-          </motion.div>
-
-          <div className="flex justify-center">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <button
               onClick={() => navigate('/')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-4 px-8 rounded-full shadow-lg shadow-blue-200 flex items-center gap-3 transition-all hover:shadow-xl hover:from-blue-700 hover:to-purple-700"
+              className="btn-secondary w-full sm:w-auto flex items-center justify-center gap-2 text-sm py-3 px-6"
             >
-              <Home size={20} /> Back to Bootcamp
-            </motion.button>
+              <Home size={18} />
+              Back to Bootcamp
+            </button>
+
+            {nextDayId && (
+              <button
+                onClick={() => navigate(`/day/${nextDayId}`)}
+                className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 text-sm py-3 px-6 group"
+              >
+                <span>Continue to Day {nextDayId}</span>
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            )}
           </div>
+
         </div>
       </motion.div>
     </div>

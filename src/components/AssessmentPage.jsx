@@ -1,20 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { day1Questions } from '../data/day1Questions';
+import { getDayConfig } from '../data/bootcampDays';
+import { getQuestionsForDay } from '../data/questionsRegistry';
 import AssessmentHeader from './AssessmentHeader';
+import DayNavigation from './DayNavigation';
 import ProgressBar from './ProgressBar';
 import QuestionCard from './QuestionCard';
 import QuestionNavigator from './QuestionNavigator';
 import ReviewPage from './ReviewPage';
 import SubmissionModal from './SubmissionModal';
+import NotFound from './NotFound';
 import { ListChecks } from 'lucide-react';
 
-const TOTAL_TIME = 45 * 60; // 45 minutes in seconds
-
-const AssessmentPage = ({ studentData, initialData, onComplete }) => {
+const AssessmentPage = ({ studentData, onComplete }) => {
+  const params = useParams();
   const navigate = useNavigate();
-  
+
+  // Determine current day from route params (e.g. /day/:dayId) or default to 1
+  const dayId = params.dayId ? parseInt(params.dayId, 10) : 1;
+  const dayConfig = useMemo(() => getDayConfig(dayId), [dayId]);
+  const questions = useMemo(() => getQuestionsForDay(dayId), [dayId]);
+
+  const TOTAL_TIME = (dayConfig?.durationMinutes || 45) * 60; // in seconds
+  const storageKey = `kq_assessment_day_${dayId}`;
+
+  // Read initial saved draft for this specific day
+  const getInitialDraft = () => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) return JSON.parse(saved);
+      // Legacy backward-compatibility for Day 1
+      if (dayId === 1) {
+        const legacy = localStorage.getItem('kq_assessment');
+        if (legacy) return JSON.parse(legacy);
+      }
+    } catch (e) {
+      console.error("Error reading saved draft", e);
+    }
+    return null;
+  };
+
+  const initialData = getInitialDraft();
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState(initialData?.answers || {});
   const [timeRemaining, setTimeRemaining] = useState(initialData?.timeRemaining || TOTAL_TIME);
@@ -26,16 +54,30 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
 
-  // Autosave
+  // When dayId changes, reload state for that day
   useEffect(() => {
+    const draft = getInitialDraft();
+    setCurrentQuestionIndex(0);
+    setAnswers(draft?.answers || {});
+    setTimeRemaining(draft?.timeRemaining || TOTAL_TIME);
+    setVisited(draft?.visited || [0]);
+    setViolations(draft?.violations || []);
+    setShowReview(false);
+    setShowSubmitModal(false);
+  }, [dayId, TOTAL_TIME]);
+
+  // Autosave progress for this specific day
+  useEffect(() => {
+    if (!dayConfig) return;
     const dataToSave = {
+      dayId,
       answers,
       timeRemaining,
       visited,
       violations
     };
-    localStorage.setItem('kq_assessment', JSON.stringify(dataToSave));
-  }, [answers, timeRemaining, visited, violations]);
+    localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+  }, [dayId, answers, timeRemaining, visited, violations, dayConfig, storageKey]);
 
   // Anti-Cheat System (No Copy, No Right-Click, No Screenshots/Print, Tab Tracking)
   useEffect(() => {
@@ -58,29 +100,26 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
 
     // 3. Prevent Keyboard Shortcuts (PrintScreen, Ctrl+C, Ctrl+P, Ctrl+S, Win+Shift+S)
     const preventShortcuts = (e) => {
-      // PrintScreen key
       if (e.key === 'PrintScreen' || e.keyCode === 44) {
-        navigator.clipboard.writeText(''); // clear clipboard
+        try { navigator.clipboard.writeText(''); } catch (_) {}
         recordViolation('PRINTSCREEN_ATTEMPT');
         alert("Screenshots are disabled.");
         e.preventDefault();
       }
 
-      // Meta/Win + Shift + S (Snippet tool on Windows/Mac)
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 's') {
-        navigator.clipboard.writeText('');
+        try { navigator.clipboard.writeText(''); } catch (_) {}
         recordViolation('SCREENSHOT_SHORTCUT_ATTEMPT');
         alert("Screenshots are disabled.");
         e.preventDefault();
       }
       
-      // Ctrl/Cmd + shortcuts
       if (e.ctrlKey || e.metaKey) {
         const forbiddenKeys = ['c', 'v', 'x', 'p', 's'];
         if (forbiddenKeys.includes(e.key.toLowerCase())) {
           e.preventDefault();
           recordViolation(`KEYBOARD_SHORTCUT_${e.key.toUpperCase()}`);
-          if (e.key.toLowerCase() !== 'v') { // paste has its own alert
+          if (e.key.toLowerCase() !== 'v') {
             alert("This shortcut is disabled during the assessment.");
           }
         }
@@ -95,7 +134,6 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
       }
     };
 
-    // Add Listeners
     document.addEventListener("contextmenu", preventContextMenu);
     document.addEventListener("copy", preventCopyPaste);
     document.addEventListener("cut", preventCopyPaste);
@@ -103,7 +141,6 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
     document.addEventListener("keydown", preventShortcuts);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Cleanup
     return () => {
       document.removeEventListener("contextmenu", preventContextMenu);
       document.removeEventListener("copy", preventCopyPaste);
@@ -113,6 +150,26 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
+
+  // Validation: If Day does not exist
+  if (!dayConfig || !questions) {
+    return (
+      <NotFound 
+        message={`Day ${params.dayId || ''} Not Found`}
+        subtitle="This assessment day does not exist in the 5-day bootcamp curriculum."
+      />
+    );
+  }
+
+  // Validation: If Day is locked
+  if (dayConfig.status === 'locked' || dayConfig.status === 'coming_soon') {
+    return (
+      <NotFound 
+        message={`Day ${dayConfig.dayNumber}: ${dayConfig.title}`}
+        subtitle="This assessment is currently unavailable or coming soon. Please check back later!"
+      />
+    );
+  }
 
   const handleAnswer = (questionId, answer) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
@@ -128,7 +185,7 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex < day1Questions.length - 1) {
+    if (currentQuestionIndex < questions.length - 1) {
       handleNavigate(currentQuestionIndex + 1);
     } else {
       setShowReview(true);
@@ -150,19 +207,22 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
     
     // Calculate objective score
     let score = 0;
-    const maxScore = day1Questions.filter(q => q.type === 'mcq').length;
+    const maxScore = questions.filter(q => q.type === 'mcq').length;
     
-    day1Questions.forEach(q => {
+    questions.forEach(q => {
       if (q.type === 'mcq' && answers[q.id] === q.correctAnswer) {
         score += q.marks || 1;
       }
     });
 
-    const submissionId = `KQ-PY-D1-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const submissionId = `KQ-PY-D${dayConfig.id}-${new Date().toISOString().split('T')[0].replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const payload = {
       timestamp: new Date().toISOString(),
       submissionId,
+      day: dayConfig.id,
+      dayNumber: dayConfig.id,
+      assessment: `Day ${dayConfig.id} - ${dayConfig.title}`,
       studentData,
       answers,
       score,
@@ -173,13 +233,17 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
     };
 
     try {
-      // Send to Google Sheets (Mocked for now if API not ready, replace with real fetch later)
-      const scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL;
+      // Resolve Google Sheets API URL: checks day-specific env, then dayConfig.sheetsUrl, then default env
+      const scriptURL = 
+        import.meta.env[`VITE_GOOGLE_SHEETS_API_URL_DAY_${dayConfig.id}`] ||
+        import.meta.env[`VITE_GOOGLE_SHEETS_API_URL_DAY${dayConfig.id}`] ||
+        dayConfig.sheetsUrl ||
+        import.meta.env.VITE_GOOGLE_SHEETS_API_URL;
       
       if (scriptURL) {
         await fetch(scriptURL, {
           method: 'POST',
-          mode: 'no-cors', // Google Forms/Apps script standard
+          mode: 'no-cors',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -187,13 +251,48 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
         });
       }
 
-      onComplete();
+      // Record completed day in localStorage
+      try {
+        const completed = JSON.parse(localStorage.getItem('kq_completed_days') || '[]');
+        if (!completed.includes(dayConfig.id)) {
+          localStorage.setItem('kq_completed_days', JSON.stringify([...completed, dayConfig.id]));
+        }
+
+        // Store in local submission log
+        const subList = JSON.parse(localStorage.getItem('kq_submissions') || '[]');
+        subList.unshift({
+          submissionId,
+          day: dayConfig.id,
+          dayTitle: dayConfig.title,
+          studentName: studentData.fullName,
+          score,
+          maxScore,
+          submittedAt: new Date().toLocaleString(),
+          timeTaken: TOTAL_TIME - timeRemaining
+        });
+        localStorage.setItem('kq_submissions', JSON.stringify(subList.slice(0, 50)));
+      } catch (err) {
+        console.error("Error updating completed days", err);
+      }
+
+      // Clear this day's draft
+      localStorage.removeItem(storageKey);
+      if (dayConfig.id === 1) {
+        localStorage.removeItem('kq_assessment');
+      }
+
+      if (onComplete) {
+        onComplete(dayConfig.id);
+      }
+
       navigate('/success', { 
         state: { 
           score, 
           maxScore,
           submissionId,
-          studentName: studentData.fullName
+          studentName: studentData.fullName,
+          dayId: dayConfig.id,
+          dayTitle: dayConfig.title
         } 
       });
     } catch (error) {
@@ -204,18 +303,23 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
     }
   };
 
+  const answeredCount = Object.keys(answers).filter(k => answers[k] !== undefined && answers[k] !== '').length;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <AssessmentHeader 
-        studentName={studentData.fullName} 
+        studentName={studentData.fullName}
+        dayConfig={dayConfig}
         timeRemaining={timeRemaining} 
         setTimeRemaining={setTimeRemaining}
         onTimeUp={handleTimeUp}
       />
+
+      <DayNavigation currentDayId={dayConfig.id} />
       
       <ProgressBar 
-        current={Object.keys(answers).length} 
-        total={day1Questions.length} 
+        current={answeredCount} 
+        total={questions.length} 
       />
 
       <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 gap-6">
@@ -230,7 +334,7 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
               className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm text-primary font-medium"
             >
               <ListChecks size={20} />
-              Questions
+              Questions ({answeredCount}/{questions.length})
             </button>
           </div>
 
@@ -238,7 +342,7 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
             {showReview ? (
               <ReviewPage 
                 key="review"
-                questions={day1Questions}
+                questions={questions}
                 answers={answers}
                 visited={visited}
                 onNavigate={handleNavigate}
@@ -246,11 +350,11 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
               />
             ) : (
               <QuestionCard
-                key={currentQuestionIndex}
-                question={day1Questions[currentQuestionIndex]}
+                key={`${dayConfig.id}-${currentQuestionIndex}`}
+                question={questions[currentQuestionIndex]}
                 questionIndex={currentQuestionIndex}
-                totalQuestions={day1Questions.length}
-                currentAnswer={answers[day1Questions[currentQuestionIndex].id]}
+                totalQuestions={questions.length}
+                currentAnswer={answers[questions[currentQuestionIndex].id]}
                 onAnswer={handleAnswer}
                 onNext={handleNext}
                 onPrev={handlePrev}
@@ -262,7 +366,7 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
         {/* Right Sidebar - Navigator (Desktop) */}
         <div className="hidden md:block w-80">
           <QuestionNavigator 
-            questions={day1Questions}
+            questions={questions}
             answers={answers}
             visited={visited}
             currentIndex={currentQuestionIndex}
@@ -281,11 +385,16 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
               className="fixed inset-x-0 bottom-0 z-50 p-4 bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:hidden max-h-[70vh] overflow-y-auto"
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold">Questions</h3>
-                <button onClick={() => setShowMobileNav(false)} className="text-text-muted text-sm font-medium p-2">Close</button>
+                <h3 className="font-semibold">Questions (Day {dayConfig.id})</h3>
+                <button 
+                  onClick={() => setShowMobileNav(false)} 
+                  className="text-text-muted text-sm font-medium p-2"
+                >
+                  Close
+                </button>
               </div>
               <QuestionNavigator 
-                questions={day1Questions}
+                questions={questions}
                 answers={answers}
                 visited={visited}
                 currentIndex={currentQuestionIndex}
@@ -303,8 +412,8 @@ const AssessmentPage = ({ studentData, initialData, onComplete }) => {
             onClose={() => setShowSubmitModal(false)}
             onSubmit={submitAssessment}
             isSubmitting={isSubmitting}
-            totalQuestions={day1Questions.length}
-            answeredCount={Object.keys(answers).length}
+            totalQuestions={questions.length}
+            answeredCount={answeredCount}
           />
         )}
       </AnimatePresence>
