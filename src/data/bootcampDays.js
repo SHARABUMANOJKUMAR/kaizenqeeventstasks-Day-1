@@ -6,7 +6,7 @@ export const bootcampDays = [
     shortTitle: "Python Foundations",
     description: "Build confidence with Python programming fundamentals and logical reasoning.",
     topics: ["Variables", "Conditions", "Loops", "Data Structures", "Functions"],
-    status: "available", // "available" | "coming_soon" | "locked" | "completed"
+    status: "closed", // Closed: yesterday's tasks completed, submissions closed
     durationMinutes: 45,
     totalQuestions: 21,
     mcqCount: 17,
@@ -14,18 +14,18 @@ export const bootcampDays = [
     route: "/day/1",
     accentColor: "purple",
     theme: {
-      badgeBg: "bg-purple-50",
-      badgeText: "text-purple-700",
-      border: "border-purple-200",
-      borderActive: "border-purple-500",
-      hoverBorder: "hover:border-purple-300",
-      glowBg: "from-purple-500/10 to-indigo-500/10",
-      btnBg: "bg-purple-600 hover:bg-purple-700",
-      btnSecondary: "text-purple-700 bg-purple-50 hover:bg-purple-100",
-      accentText: "text-purple-600",
-      cardBorder: "border-purple-100",
-      iconBg: "bg-purple-100 text-purple-600",
-      pillBg: "bg-purple-50 text-purple-700 border-purple-200"
+      badgeBg: "bg-gray-100",
+      badgeText: "text-gray-600",
+      border: "border-gray-200",
+      borderActive: "border-gray-400",
+      hoverBorder: "hover:border-gray-300",
+      glowBg: "from-gray-500/5 to-slate-500/5",
+      btnBg: "bg-gray-200 text-gray-500 cursor-not-allowed",
+      btnSecondary: "text-gray-500 bg-gray-100",
+      accentText: "text-gray-600",
+      cardBorder: "border-gray-200",
+      iconBg: "bg-gray-100 text-gray-500",
+      pillBg: "bg-gray-50 text-gray-600 border-gray-200"
     }
   },
   {
@@ -35,7 +35,7 @@ export const bootcampDays = [
     shortTitle: "Data, APIs & Automation",
     description: "Turn Python into a practical data and automation engine with Pandas, APIs, and file workflows.",
     topics: ["Pandas", "NumPy", "CSV", "JSON", "APIs", "Automation"],
-    status: "available",
+    status: "available", // Today's active task
     durationMinutes: 45,
     totalQuestions: 21,
     mcqCount: 17,
@@ -65,7 +65,7 @@ export const bootcampDays = [
     shortTitle: "Machine Learning",
     description: "Make Python learn from data using supervised and unsupervised learning algorithms.",
     topics: ["ML Fundamentals", "Regression", "Classification", "Scikit-Learn"],
-    status: "available",
+    status: "coming_soon", // Locked / coming soon
     durationMinutes: 45,
     totalQuestions: 21,
     mcqCount: 17,
@@ -94,7 +94,7 @@ export const bootcampDays = [
     shortTitle: "Generative AI",
     description: "Build AI-powered applications using Python, LLMs, and prompt engineering architectures.",
     topics: ["LLMs", "Prompt Engineering", "AI APIs", "Chatbots"],
-    status: "available",
+    status: "coming_soon", // Locked / coming soon
     durationMinutes: 45,
     totalQuestions: 21,
     mcqCount: 17,
@@ -123,7 +123,7 @@ export const bootcampDays = [
     shortTitle: "Build & Deploy",
     description: "Turn your Python skills into a real, deployable AI product ready for user showcase.",
     topics: ["Streamlit", "GitHub", "Deployment", "AI Product", "Presentation"],
-    status: "available",
+    status: "coming_soon", // Locked / coming soon
     durationMinutes: 45,
     totalQuestions: 21,
     mcqCount: 17,

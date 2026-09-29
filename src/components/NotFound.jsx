@@ -1,9 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, AlertCircle, Home } from 'lucide-react';
+import { ArrowLeft, AlertCircle, ArrowRight } from 'lucide-react';
 
-const NotFound = ({ message = "Day Not Found", subtitle = "The requested assessment day does not exist in this 5-day bootcamp curriculum." }) => {
+const NotFound = ({ 
+  message = "Day Not Found", 
+  subtitle = "The requested assessment day does not exist in this 5-day bootcamp curriculum." 
+}) => {
   const navigate = useNavigate();
 
   return (
@@ -26,13 +29,22 @@ const NotFound = ({ message = "Day Not Found", subtitle = "The requested assessm
           {subtitle}
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full">
+        <div className="flex flex-col gap-3 w-full">
+          {/* Direct link to today's active Day 2 task */}
+          <button
+            onClick={() => navigate('/day/2')}
+            className="btn-primary w-full flex items-center justify-center gap-2 text-sm py-3"
+          >
+            <span>Start Today&apos;s Task (Day 2)</span>
+            <ArrowRight size={16} />
+          </button>
+
           <button
             onClick={() => navigate('/')}
-            className="btn-primary w-full flex items-center justify-center gap-2 text-sm"
+            className="btn-secondary w-full flex items-center justify-center gap-2 text-sm py-3"
           >
             <ArrowLeft size={16} />
-            Back to Bootcamp
+            Back to Bootcamp Home
           </button>
         </div>
       </motion.div>

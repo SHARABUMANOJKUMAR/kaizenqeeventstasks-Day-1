@@ -28,16 +28,20 @@ const DayNavigation = ({ currentDayId }) => {
           {bootcampDays.map((day) => {
             const isCurrent = day.id === currentNum;
             const isCompleted = completedDays.includes(day.id);
+            const isClosed = day.status === 'closed';
             const isLocked = day.status === 'locked' || day.status === 'coming_soon';
+            const isNavDisabled = isClosed || isLocked || isCurrent;
 
             let pillStyle = "px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 ";
 
             if (isCurrent) {
               pillStyle += "bg-primary text-white shadow-sm font-semibold scale-102";
-            } else if (isCompleted) {
-              pillStyle += "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200";
+            } else if (isClosed) {
+              pillStyle += "bg-gray-100 text-gray-500 cursor-not-allowed border border-gray-200";
             } else if (isLocked) {
               pillStyle += "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200";
+            } else if (isCompleted) {
+              pillStyle += "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200";
             } else {
               pillStyle += "bg-gray-50 text-text-main hover:bg-primary-50 hover:text-primary border border-gray-200/80";
             }
@@ -46,21 +50,24 @@ const DayNavigation = ({ currentDayId }) => {
               <button
                 key={day.id}
                 onClick={() => {
-                  if (!isLocked && !isCurrent) {
+                  if (!isNavDisabled) {
                     navigate(day.route);
                   }
                 }}
-                disabled={isLocked || isCurrent}
+                disabled={isNavDisabled}
                 aria-current={isCurrent ? "page" : undefined}
                 className={pillStyle}
                 title={`${day.title} (${day.status})`}
               >
                 <span>Day {day.id}</span>
-                {isCompleted && !isCurrent && (
-                  <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+                {isClosed && (
+                  <span className="text-[10px] text-gray-400 font-normal">(Closed)</span>
                 )}
                 {isLocked && (
                   <Lock size={12} className="text-gray-400 shrink-0" />
+                )}
+                {isCompleted && !isCurrent && !isClosed && (
+                  <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
                 )}
               </button>
             );

@@ -161,12 +161,22 @@ const AssessmentPage = ({ studentData, onComplete }) => {
     );
   }
 
-  // Validation: If Day is locked
+  // Validation: If Day is closed (e.g. Day 1 yesterday's task)
+  if (dayConfig.status === 'closed') {
+    return (
+      <NotFound 
+        message={`Day ${dayConfig.dayNumber}: Submissions Closed`}
+        subtitle="Yesterday's task for Day 1 (Python Foundations) has concluded and submissions are now closed. Today's active task is Day 2!"
+      />
+    );
+  }
+
+  // Validation: If Day is locked / coming soon (e.g. Days 3, 4, 5)
   if (dayConfig.status === 'locked' || dayConfig.status === 'coming_soon') {
     return (
       <NotFound 
-        message={`Day ${dayConfig.dayNumber}: ${dayConfig.title}`}
-        subtitle="This assessment is currently unavailable or coming soon. Please check back later!"
+        message={`Day ${dayConfig.dayNumber}: Coming Soon`}
+        subtitle={`Day ${dayConfig.dayNumber} (${dayConfig.title}) is locked and will unlock on its scheduled day. Please complete today's Day 2 assessment!`}
       />
     );
   }
