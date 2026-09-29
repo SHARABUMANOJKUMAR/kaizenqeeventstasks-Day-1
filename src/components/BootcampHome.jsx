@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { bootcampDays } from '../data/bootcampDays';
@@ -9,11 +9,7 @@ import {
   Layers, 
   Rocket, 
   CheckCircle2, 
-  Sparkles, 
-  User, 
-  ShieldCheck, 
-  Award,
-  ArrowRight
+  Sparkles
 } from 'lucide-react';
 
 const BootcampHome = ({ studentData }) => {
@@ -44,13 +40,13 @@ const BootcampHome = ({ studentData }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden flex flex-col">
+    <div className="min-h-screen bg-background relative overflow-x-hidden flex flex-col justify-between">
       {/* Background soft ambient blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] rounded-full bg-primary-100/50 blur-3xl pointer-events-none" />
       <div className="absolute top-[30%] right-[-10%] w-[40%] h-[40%] rounded-full bg-secondary-light/60 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] rounded-full bg-accent-light/50 blur-3xl pointer-events-none" />
 
-      {/* Top Navbar */}
+      {/* Top Navbar — Clean branding, mentor & student login removed */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -65,35 +61,11 @@ const BootcampHome = ({ studentData }) => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {studentData ? (
-              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-50 border border-primary-200 text-xs sm:text-sm">
-                <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs">
-                  {studentData.fullName?.charAt(0) || 'S'}
-                </div>
-                <span className="font-medium text-primary-900 hidden sm:inline">
-                  {studentData.fullName}
-                </span>
-                <span className="text-xs text-primary-600 bg-white px-2 py-0.5 rounded-full font-mono">
-                  {studentData.rollNumber}
-                </span>
-              </div>
-            ) : (
-              <button
-                onClick={() => navigate('/register')}
-                className="btn-secondary text-xs sm:text-sm py-2 px-4 flex items-center gap-1.5"
-              >
-                <User size={15} />
-                Student Login
-              </button>
-            )}
-
-            <button
-              onClick={() => navigate('/mentor')}
-              className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-text-muted hover:text-text-main hover:bg-gray-100 transition-colors"
-            >
-              Mentor View
-            </button>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary-50 text-primary-700 border border-primary-200 shadow-xs">
+              <Sparkles size={13} className="text-primary-600" />
+              5-Day Hands-On Bootcamp
+            </span>
           </div>
         </div>
       </header>
@@ -228,8 +200,8 @@ const BootcampHome = ({ studentData }) => {
           </div>
         </section>
 
-        {/* Day Cards Section Header */}
-        <section className="mb-6">
+        {/* Day Cards Section */}
+        <section className="mb-12">
           <div className="text-center md:text-left mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-primary">Curriculum</span>
@@ -242,21 +214,9 @@ const BootcampHome = ({ studentData }) => {
             </p>
           </div>
 
-          {/* 5 Day Cards Grid */}
-          {/* Balanced layout: 3 on top row, 2 centered on second row on large desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {bootcampDays.slice(0, 3).map((day) => (
-              <DayCard 
-                key={day.id}
-                day={day}
-                isCompleted={completedDays.includes(day.id)}
-                onSelect={handleSelectDay}
-              />
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {bootcampDays.slice(3, 5).map((day) => (
+          {/* All 5 Day Cards Grid - Seamless, perfectly aligned */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {bootcampDays.map((day) => (
               <DayCard 
                 key={day.id}
                 day={day}
@@ -269,32 +229,29 @@ const BootcampHome = ({ studentData }) => {
 
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-8 px-4 text-center text-xs text-text-muted relative z-10">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+      {/* Clean, Properly Aligned Footer (No Mentor Links) */}
+      <footer className="w-full bg-white border-t border-gray-100 py-6 px-4 sm:px-8 mt-auto relative z-10">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-muted">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
             <img 
               src="https://res.cloudinary.com/dwv8kc9vb/image/upload/v1788465282/KAIZEN_Q_EVENTS_kxjtz4.png" 
               alt="Kaizen Q" 
-              className="h-7 w-auto object-contain opacity-80"
+              className="h-8 w-auto object-contain"
             />
+            <span className="font-semibold text-text-main text-sm">Kaizen Q Bootcamps</span>
+            <span className="hidden sm:inline text-gray-300">•</span>
             <span>&copy; {new Date().getFullYear()} Kaizen Q Events. All rights reserved.</span>
           </div>
 
-          <div className="flex items-center gap-6">
-            <button 
-              onClick={() => navigate('/mentor')}
-              className="hover:text-primary transition-colors"
-            >
-              Mentor Dashboard
-            </button>
+          <div className="flex items-center justify-center">
             <a 
               href="https://kaizenqevents.click" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="hover:text-primary transition-colors"
+              className="text-primary hover:text-primary-700 font-semibold transition-colors flex items-center gap-1.5"
             >
-              Official Website
+              <span>Visit Official Website</span>
+              <span aria-hidden="true">&rarr;</span>
             </a>
           </div>
         </div>

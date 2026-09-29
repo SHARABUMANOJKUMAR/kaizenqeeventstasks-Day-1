@@ -50,7 +50,7 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
           ) : (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Active Today
+              Available
             </span>
           )}
         </div>
@@ -71,14 +71,14 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
         {isClosed && (
           <div className="mb-5 p-2.5 rounded-xl bg-gray-100/90 border border-gray-200 text-xs text-gray-600 flex items-center gap-2">
             <AlertCircle size={15} className="text-gray-500 shrink-0" />
-            <span>Yesterday's task completed. Submissions closed.</span>
+            <span>Task completed. Submissions closed.</span>
           </div>
         )}
 
         {isLocked && (
           <div className="mb-5 p-2.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-500 flex items-center gap-2">
             <Lock size={14} className="text-gray-400 shrink-0" />
-            <span>Unlocks on scheduled day. Focus on Day 2 today!</span>
+            <span>Unlocks on scheduled day.</span>
           </div>
         )}
 
@@ -130,7 +130,7 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
           {isClosed ? (
             <>
               <CheckCircle2 size={15} />
-              Day 1 Submissions Closed
+              Day {day.dayNumber} Submissions Closed
             </>
           ) : isLocked ? (
             <>
@@ -139,12 +139,12 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
             </>
           ) : isCompleted ? (
             <>
-              Review Tasks
+              Review Day {day.dayNumber} Tasks
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
             </>
           ) : (
             <>
-              Start Day 2 Tasks
+              Start Day {day.dayNumber}
               <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
             </>
           )}

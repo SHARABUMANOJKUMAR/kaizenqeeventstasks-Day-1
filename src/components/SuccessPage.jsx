@@ -129,24 +129,14 @@ const SuccessPage = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <div className="flex justify-center items-center">
             <button
               onClick={() => navigate('/')}
-              className="btn-secondary w-full sm:w-auto flex items-center justify-center gap-2 text-sm py-3 px-6"
+              className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 text-sm py-3.5 px-8"
             >
               <Home size={18} />
-              Back to Bootcamp
+              Back to Bootcamp Home
             </button>
-
-            {nextDayId && (
-              <button
-                onClick={() => navigate(`/day/${nextDayId}`)}
-                className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 text-sm py-3 px-6 group"
-              >
-                <span>Continue to Day {nextDayId}</span>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            )}
           </div>
 
         </div>
