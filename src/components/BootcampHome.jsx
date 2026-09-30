@@ -27,7 +27,7 @@ const BootcampHome = ({ studentData }) => {
   const progressPercent = Math.round((completedDays.length / bootcampDays.length) * 100);
 
   const handleSelectDay = (day) => {
-    if (day.status === 'locked' || day.status === 'coming_soon' || day.status === 'closed' || day.id > 2) {
+    if (day.status === 'locked' || day.status === 'coming_soon' || day.status === 'closed') {
       return;
     }
     // If student is already registered, navigate directly

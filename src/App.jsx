@@ -6,19 +6,21 @@ import AssessmentPage from './components/AssessmentPage';
 import SuccessPage from './components/SuccessPage';
 import MentorDashboard from './components/MentorDashboard';
 import NotFound from './components/NotFound';
+import { getDayConfig } from './data/bootcampDays';
 
 // Wrapper for protected Day Assessment route that blocks locked upcoming days and guards registration
 function DayRouteWrapper({ studentData, onComplete }) {
   const location = useLocation();
   const params = useParams();
   const dayId = parseInt(params.dayId || 1, 10);
+  const dayConfig = getDayConfig(dayId);
 
-  // Strictly block upcoming days (Day 3, 4, 5)
-  if (dayId > 2 || isNaN(dayId)) {
+  // Block days that do not exist or are locked
+  if (!dayConfig || dayConfig.status === 'locked' || dayConfig.status === 'coming_soon' || isNaN(dayId)) {
     return (
       <NotFound 
         message={`Day ${params.dayId || ''}: Access Restricted`}
-        subtitle="This assessment is locked and not accessible yet. Only Day 1 and Day 2 are currently open!"
+        subtitle="This assessment is locked and not accessible yet. Check back soon!"
       />
     );
   }

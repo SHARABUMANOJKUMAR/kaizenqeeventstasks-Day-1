@@ -65,26 +65,27 @@ export const bootcampDays = [
     shortTitle: "Machine Learning",
     description: "Make Python learn from data using supervised and unsupervised learning algorithms.",
     topics: ["ML Fundamentals", "Regression", "Classification", "Scikit-Learn"],
-    status: "locked", // Completely locked
+    status: "available", // Unlocked & Connected
     durationMinutes: 45,
     totalQuestions: 21,
     mcqCount: 17,
     codingCount: 4,
     route: "/day/3",
-    accentColor: "mint",
+    sheetsUrl: "https://script.google.com/macros/s/AKfycbyn1naNDTnqwm40jrizQyIkcqXc-9azTaxiypWEZEmBkaYmxRQ-RZrKLVhm3hbTOLIt/exec",
+    accentColor: "emerald",
     theme: {
-      badgeBg: "bg-gray-100",
-      badgeText: "text-gray-500",
-      border: "border-gray-200",
-      borderActive: "border-gray-300",
-      hoverBorder: "hover:border-gray-200",
-      glowBg: "from-gray-500/5 to-slate-500/5",
-      btnBg: "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200",
-      btnSecondary: "text-gray-400 bg-gray-50",
-      accentText: "text-gray-400",
-      cardBorder: "border-gray-200/80",
-      iconBg: "bg-gray-100 text-gray-400",
-      pillBg: "bg-gray-50 text-gray-500 border-gray-100"
+      badgeBg: "bg-emerald-50",
+      badgeText: "text-emerald-700",
+      border: "border-emerald-200",
+      borderActive: "border-emerald-500",
+      hoverBorder: "hover:border-emerald-300",
+      glowBg: "from-emerald-500/10 to-teal-500/10",
+      btnBg: "bg-emerald-600 hover:bg-emerald-700",
+      btnSecondary: "text-emerald-700 bg-emerald-50 hover:bg-emerald-100",
+      accentText: "text-emerald-600",
+      cardBorder: "border-emerald-100",
+      iconBg: "bg-emerald-100 text-emerald-600",
+      pillBg: "bg-emerald-50 text-emerald-700 border-emerald-200"
     }
   },
   {
