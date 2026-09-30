@@ -237,6 +237,8 @@ const AssessmentPage = ({ studentData, onComplete }) => {
       answers,
       score,
       maxScore,
+      correctAnswersCount: score,
+      incorrectAnswersCount: maxScore - score,
       timeRemaining,
       timeTaken: TOTAL_TIME - timeRemaining,
       violations

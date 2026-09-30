@@ -108,7 +108,32 @@ function doPost(e) {
       try {
         const score = Number(data.score) || 0;
         const maxScore = Number(data.maxScore) || 17;
-        const scorePercent = Math.round((score / (maxScore || 1)) * 100);
+        const correctCount = score;
+        const incorrectCount = Math.max(0, maxScore - correctCount);
+        const scorePercent = Math.round((correctCount / (maxScore || 1)) * 100);
+
+        // Performance feedback message
+        let performanceBadge = "🌟 Outstanding Performance";
+        let performanceColor = "#059669";
+        let performanceBg = "#ecfdf5";
+        let performanceText = "You demonstrated strong mastery of ML models, train/test splits, and evaluation metrics!";
+
+        if (correctCount >= 14) {
+          performanceBadge = "🌟 Outstanding Performance";
+          performanceColor = "#059669";
+          performanceBg = "#ecfdf5";
+          performanceText = "You demonstrated strong mastery of ML models, train/test splits, and evaluation metrics!";
+        } else if (correctCount >= 10) {
+          performanceBadge = "👍 Good Effort";
+          performanceColor = "#0284c7";
+          performanceBg = "#f0f9ff";
+          performanceText = "You have a solid grasp of core ML foundations. Keep strengthening your practice!";
+        } else {
+          performanceBadge = "📚 Practice Recommended";
+          performanceColor = "#d97706";
+          performanceBg = "#fffbeb";
+          performanceText = "Good effort! Review today's session notes on Scikit-Learn and model evaluation to sharpen your concepts.";
+        }
 
         // Light, clean, modern responsive HTML template
         const htmlEmail = `
@@ -117,7 +142,7 @@ function doPost(e) {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Day 3 Assessment Submission Confirmation</title>
+          <title>Day 3 Assessment Result</title>
           <style>
             body {
               margin: 0;
@@ -174,59 +199,103 @@ function doPost(e) {
               font-weight: 500;
             }
             .content-body {
-              padding: 36px 30px;
+              padding: 32px 28px;
             }
             .greeting {
               font-size: 20px;
               font-weight: 700;
               color: #1e293b;
-              margin-bottom: 12px;
+              margin-bottom: 10px;
             }
             .intro-text {
               font-size: 15px;
               line-height: 1.6;
               color: #475569;
-              margin-bottom: 24px;
+              margin-bottom: 22px;
             }
             
-            /* Score Box */
-            .score-grid {
-              margin: 24px 0;
-              background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-              border: 1px solid #bbf7d0;
-              border-radius: 16px;
-              padding: 22px;
+            /* Prominent Score Card */
+            .score-container {
+              background: #ffffff;
+              border: 2px solid #a7f3d0;
+              border-radius: 18px;
+              padding: 24px 20px;
               text-align: center;
+              margin: 22px 0;
+              box-shadow: 0 4px 20px rgba(5, 150, 105, 0.06);
             }
-            .score-heading {
+            .score-eyebrow {
               font-size: 12px;
               font-weight: 700;
               text-transform: uppercase;
-              letter-spacing: 1px;
-              color: #047857;
-              margin-bottom: 6px;
+              letter-spacing: 1.2px;
+              color: #059669;
+              margin-bottom: 4px;
             }
-            .score-value {
-              font-size: 42px;
+            .score-big {
+              font-size: 48px;
               font-weight: 800;
               color: #065f46;
-              line-height: 1;
-              margin: 0;
+              line-height: 1.1;
+              margin: 4px 0 6px;
             }
-            .score-total {
-              font-size: 18px;
+            .score-denominator {
+              font-size: 22px;
               color: #64748b;
-              font-weight: 500;
-            }
-            .score-pill {
-              display: inline-block;
-              margin-top: 8px;
-              background-color: #dcfce7;
-              color: #15803d;
-              font-size: 12px;
               font-weight: 600;
-              padding: 3px 12px;
+            }
+            .score-headline {
+              font-size: 16px;
+              font-weight: 700;
+              color: #047857;
+              margin-bottom: 18px;
+            }
+
+            /* Metrics Breakdown Table */
+            .breakdown-table {
+              width: 100%;
+              border-collapse: separate;
+              border-spacing: 8px 0;
+              margin-top: 14px;
+            }
+            .metric-box {
+              background: #f8fafc;
               border-radius: 12px;
+              padding: 12px 6px;
+              text-align: center;
+            }
+            .metric-box.correct {
+              background: #ecfdf5;
+              border: 1px solid #bbf7d0;
+            }
+            .metric-box.incorrect {
+              background: #fef2f2;
+              border: 1px solid #fecaca;
+            }
+            .metric-box.accuracy {
+              background: #eff6ff;
+              border: 1px solid #bfdbfe;
+            }
+            .metric-number {
+              font-size: 22px;
+              font-weight: 800;
+              line-height: 1.2;
+            }
+            .metric-label {
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.8px;
+              margin-top: 3px;
+            }
+
+            /* Performance Banner */
+            .performance-card {
+              border-radius: 12px;
+              padding: 12px 16px;
+              margin: 18px 0 24px;
+              font-size: 13.5px;
+              line-height: 1.5;
             }
 
             /* Info Details Card */
@@ -234,8 +303,8 @@ function doPost(e) {
               background-color: #f8fafc;
               border: 1px solid #e2e8f0;
               border-radius: 14px;
-              padding: 18px 20px;
-              margin-bottom: 24px;
+              padding: 16px 20px;
+              margin-bottom: 22px;
             }
 
             /* Notice Box */
@@ -268,13 +337,13 @@ function doPost(e) {
 
             @media only screen and (max-width: 480px) {
               .content-body {
-                padding: 24px 18px;
+                padding: 24px 16px;
               }
               .header-title {
                 font-size: 21px;
               }
-              .score-value {
-                font-size: 34px;
+              .score-big {
+                font-size: 38px;
               }
             }
           </style>
@@ -291,7 +360,7 @@ function doPost(e) {
                   style="height: 48px; width: auto; margin-bottom: 12px;"
                 >
                 <br>
-                <div class="brand-badge">${dayLabel} Completed</div>
+                <div class="brand-badge">${dayLabel} Result</div>
                 <h1 class="header-title">${assessmentTitle}</h1>
                 <p class="header-subtitle">Python with AI — 5-Day Hands-On Bootcamp</p>
               </div>
@@ -301,23 +370,62 @@ function doPost(e) {
                 <div class="greeting">Hello ${student.fullName || 'Student'}, 🌟</div>
                 
                 <p class="intro-text">
-                  Congratulations on completing your <strong>${dayLabel} Assessment</strong>! Your submission for <strong>Python + Machine Learning</strong> has been recorded in the official evaluation database.
+                  Thank you for submitting your <strong>${dayLabel} Assessment</strong>! Here is your official objective score and answer breakdown:
                 </p>
 
-                <!-- Objective Score Box -->
-                <div class="score-grid">
-                  <div class="score-heading">Objective Score (MCQ & Logic)</div>
-                  <div class="score-value">
-                    ${score} <span class="score-total">/ ${maxScore}</span>
+                <!-- Prominent Correct Answers Score Card -->
+                <div class="score-container">
+                  <div class="score-eyebrow">Your Objective Score</div>
+                  
+                  <div class="score-big">
+                    ${correctCount} <span class="score-denominator">/ ${maxScore}</span>
                   </div>
-                  <div class="score-pill">
-                    ${scorePercent}% Accuracy
+
+                  <div class="score-headline">
+                    🎯 You correctly answered <strong>${correctCount}</strong> out of <strong>${maxScore}</strong> questions!
                   </div>
+
+                  <!-- 3-Pill Quick Breakdown -->
+                  <table class="breakdown-table" width="100%">
+                    <tr>
+                      <td width="33%">
+                        <div class="metric-box correct">
+                          <div class="metric-number" style="color: #059669;">✔ ${correctCount}</div>
+                          <div class="metric-label" style="color: #047857;">Correct</div>
+                        </div>
+                      </td>
+                      <td width="33%">
+                        <div class="metric-box incorrect">
+                          <div class="metric-number" style="color: #dc2626;">✖ ${incorrectCount}</div>
+                          <div class="metric-label" style="color: #b91c1c;">Incorrect</div>
+                        </div>
+                      </td>
+                      <td width="33%">
+                        <div class="metric-box accuracy">
+                          <div class="metric-number" style="color: #0284c7;">${scorePercent}%</div>
+                          <div class="metric-label" style="color: #0369a1;">Accuracy</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
                 </div>
 
-                <!-- Key Metadata Details -->
+                <!-- Performance Feedback Badge -->
+                <div class="performance-card" style="background-color: ${performanceBg}; border: 1px solid ${performanceColor}33; color: ${performanceColor};">
+                  <strong>${performanceBadge}:</strong> ${performanceText}
+                </div>
+
+                <!-- Key Submission Details -->
                 <div class="details-card">
                   <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                    <tr style="border-bottom: 1px dashed #e2e8f0;">
+                      <td style="padding: 7px 0; font-size: 13.5px; color: #64748b;">Correct Answers</td>
+                      <td style="padding: 7px 0; font-size: 13.5px; color: #059669; font-weight: 700; text-align: right;">${correctCount} / ${maxScore}</td>
+                    </tr>
+                    <tr style="border-bottom: 1px dashed #e2e8f0;">
+                      <td style="padding: 7px 0; font-size: 13.5px; color: #64748b;">Accuracy Rate</td>
+                      <td style="padding: 7px 0; font-size: 13.5px; color: #0284c7; font-weight: 700; text-align: right;">${scorePercent}%</td>
+                    </tr>
                     <tr style="border-bottom: 1px dashed #e2e8f0;">
                       <td style="padding: 7px 0; font-size: 13.5px; color: #64748b;">Submission ID</td>
                       <td style="padding: 7px 0; font-size: 13.5px; color: #1e293b; font-weight: 600; text-align: right; font-family: monospace;">${data.submissionId}</td>
@@ -329,10 +437,6 @@ function doPost(e) {
                     <tr style="border-bottom: 1px dashed #e2e8f0;">
                       <td style="padding: 7px 0; font-size: 13.5px; color: #64748b;">College</td>
                       <td style="padding: 7px 0; font-size: 13.5px; color: #1e293b; font-weight: 600; text-align: right;">${student.college || 'N/A'}</td>
-                    </tr>
-                    <tr style="border-bottom: 1px dashed #e2e8f0;">
-                      <td style="padding: 7px 0; font-size: 13.5px; color: #64748b;">Branch / Semester</td>
-                      <td style="padding: 7px 0; font-size: 13.5px; color: #1e293b; font-weight: 600; text-align: right;">${student.branch || 'N/A'} (${student.semester || 'N/A'})</td>
                     </tr>
                     <tr style="border-bottom: 1px dashed #e2e8f0;">
                       <td style="padding: 7px 0; font-size: 13.5px; color: #64748b;">Time Taken</td>
@@ -351,7 +455,7 @@ function doPost(e) {
                 </div>
 
                 <p style="font-size: 14.5px; line-height: 1.6; color: #475569;">
-                  Great job mastering Machine Learning fundamentals! Get ready for Day 4 where we transition from classical ML into <strong>Generative AI & LLMs</strong>.
+                  Keep up the great work! Tomorrow in <strong>Day 4: Python + Generative AI</strong>, we take these foundations and step into Prompt Engineering, LLMs, and AI APIs.
                 </p>
 
                 <p style="font-size: 14.5px; margin-top: 24px; color: #334155;">
@@ -376,7 +480,7 @@ function doPost(e) {
 
         MailApp.sendEmail({
           to: student.email,
-          subject: `🎉 Submission Confirmed: ${dayLabel} — Python + Machine Learning`,
+          subject: `🎉 Day 3 Result: You scored ${correctCount}/${maxScore} (${scorePercent}% Correct) — Python + Machine Learning`,
           htmlBody: htmlEmail,
           name: "Kaizen Q Bootcamps"
         });
