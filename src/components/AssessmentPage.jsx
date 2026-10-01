@@ -213,6 +213,15 @@ const AssessmentPage = ({ studentData, onComplete }) => {
   };
 
   const submitAssessment = async () => {
+    // Enforce Day 5 Submission Time (Oct 2, 2026 at 17:35 IST)
+    if (dayConfig.id === 5) {
+      const submissionStartTime = new Date("2026-10-02T17:35:00+05:30").getTime();
+      if (new Date().getTime() < submissionStartTime) {
+        alert("Submissions for Day 5 are locked until October 2, 2026 at 5:35 PM. Your progress is saved locally. Please come back and click Submit after the scheduled time!");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     
     // Calculate objective score

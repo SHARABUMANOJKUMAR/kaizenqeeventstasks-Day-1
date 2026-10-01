@@ -1,11 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Clock3, ListChecks, CheckCircle2, Lock, Sparkles, AlertCircle } from 'lucide-react';
 
 const DayCard = ({ day, isCompleted, onSelect }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+  const [isTimeLocked, setIsTimeLocked] = useState(false);
+
+  useEffect(() => {
+    if (!day.unlockTime) {
+      setIsTimeLocked(false);
+      return;
+    }
+
+    const target = new Date(day.unlockTime).getTime();
+
+    const update = () => {
+      const now = new Date().getTime();
+      const diff = target - now;
+      if (diff <= 0) {
+        setIsTimeLocked(false);
+        setTimeLeft('');
+        return;
+      }
+      
+      setIsTimeLocked(true);
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / 1000 / 60) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+      
+      let str = '';
+      if (d > 0) str += `${d}d `;
+      str += `${h}h ${m}m ${s}s`;
+      setTimeLeft(str);
+    };
+
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [day.unlockTime]);
+
   const isClosed = day.status === 'closed';
-  const isLocked = day.status === 'locked' || day.status === 'coming_soon';
-  const isDisabled = isClosed || isLocked;
+  const isLockedStatus = day.status === 'locked' || day.status === 'coming_soon';
+  const isDisabled = isClosed || isLockedStatus || isTimeLocked;
 
   return (
     <motion.div
@@ -14,7 +51,7 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
       transition={{ duration: 0.25, ease: "easeOut" }}
       className={`relative bg-surface rounded-2xl p-5 sm:p-6 shadow-soft border transition-all duration-300 flex flex-col justify-between overflow-hidden group h-full
         ${isClosed ? 'border-gray-200 opacity-85 bg-gray-50/40' : ''}
-        ${isLocked ? 'border-gray-200/80 opacity-75 bg-gray-50/30' : ''}
+        ${isLockedStatus ? 'border-gray-200/80 opacity-75 bg-gray-50/30' : ''}
         ${!isDisabled && isCompleted ? 'border-emerald-200 shadow-emerald-500/5' : ''}
         ${!isDisabled && !isCompleted ? `${day.theme.cardBorder} hover:shadow-soft-lg ${day.theme.hoverBorder}` : ''}
       `}
@@ -37,10 +74,15 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
               <CheckCircle2 size={13} className="text-gray-500" />
               Submissions Closed
             </span>
-          ) : isLocked ? (
+          ) : isLockedStatus ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
               <Lock size={12} />
               Coming Soon
+            </span>
+          ) : isTimeLocked ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-600 border border-orange-200">
+              <Clock3 size={12} />
+              Locked
             </span>
           ) : isCompleted ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -75,7 +117,7 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
           </div>
         )}
 
-        {isLocked && (
+        {isLockedStatus && (
           <div className="mb-4 p-2.5 rounded-xl bg-gray-50 border border-gray-200 text-xs text-gray-500 flex items-center gap-2">
             <Lock size={14} className="text-gray-400 shrink-0" />
             <span>Unlocks on scheduled day.</span>
@@ -119,11 +161,13 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
           className={`w-full py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-xs
             ${isClosed
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-              : isLocked 
+              : isLockedStatus
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' 
-                : isCompleted
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/10'
-                  : `${day.theme.btnBg} text-white shadow-soft group-hover:shadow-soft-lg`
+                : isTimeLocked
+                  ? 'bg-orange-50 text-orange-600 cursor-not-allowed border border-orange-200 animate-pulse'
+                  : isCompleted
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/10'
+                    : `${day.theme.btnBg} text-white shadow-soft group-hover:shadow-soft-lg`
             }
           `}
         >
@@ -132,10 +176,15 @@ const DayCard = ({ day, isCompleted, onSelect }) => {
               <CheckCircle2 size={15} />
               Day {day.dayNumber} Submissions Closed
             </>
-          ) : isLocked ? (
+          ) : isLockedStatus ? (
             <>
               <Lock size={15} />
               Coming Soon
+            </>
+          ) : isTimeLocked ? (
+            <>
+              <Clock3 size={15} />
+              Unlocks in {timeLeft}
             </>
           ) : isCompleted ? (
             <>

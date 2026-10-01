@@ -95,26 +95,27 @@ export const bootcampDays = [
     shortTitle: "Generative AI",
     description: "Build AI-powered applications using Python, LLMs, and prompt engineering architectures.",
     topics: ["LLMs", "Prompt Engineering", "AI APIs", "Chatbots"],
-    status: "locked", // Completely locked
+    status: "available", // Unlocked & Connected
     durationMinutes: 45,
     totalQuestions: 21,
     mcqCount: 17,
     codingCount: 4,
     route: "/day/4",
-    accentColor: "peach",
+    sheetsUrl: "https://script.google.com/macros/s/AKfycbxJotWqL0JgG9arnpWuMZ1xpQWVbMr3l8FE9s0dPSF4q5GgjzMrTQchZSINopk4Q9wtdA/exec",
+    accentColor: "orange",
     theme: {
-      badgeBg: "bg-gray-100",
-      badgeText: "text-gray-500",
-      border: "border-gray-200",
-      borderActive: "border-gray-300",
-      hoverBorder: "hover:border-gray-200",
-      glowBg: "from-gray-500/5 to-slate-500/5",
-      btnBg: "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200",
-      btnSecondary: "text-gray-400 bg-gray-50",
-      accentText: "text-gray-400",
-      cardBorder: "border-gray-200/80",
-      iconBg: "bg-gray-100 text-gray-400",
-      pillBg: "bg-gray-50 text-gray-500 border-gray-100"
+      badgeBg: "bg-orange-50",
+      badgeText: "text-orange-700",
+      border: "border-orange-200",
+      borderActive: "border-orange-500",
+      hoverBorder: "hover:border-orange-300",
+      glowBg: "from-orange-500/10 to-amber-500/10",
+      btnBg: "bg-orange-600 hover:bg-orange-700",
+      btnSecondary: "text-orange-700 bg-orange-50 hover:bg-orange-100",
+      accentText: "text-orange-600",
+      cardBorder: "border-orange-100",
+      iconBg: "bg-orange-100 text-orange-600",
+      pillBg: "bg-orange-50 text-orange-700 border-orange-200"
     }
   },
   {
@@ -124,26 +125,28 @@ export const bootcampDays = [
     shortTitle: "Build & Deploy",
     description: "Turn your Python skills into a real, deployable AI product ready for user showcase.",
     topics: ["Streamlit", "GitHub", "Deployment", "AI Product", "Presentation"],
-    status: "locked", // Completely locked
+    status: "available", // Unlocked & Connected
     durationMinutes: 45,
     totalQuestions: 21,
     mcqCount: 17,
     codingCount: 4,
     route: "/day/5",
+    sheetsUrl: "https://script.google.com/macros/s/AKfycbx4Wto_Nm_f0B6cfKLxgj0gOSsaTN1qjo9H1Lq9KhAjdmiy-TrE5V8kL3IzArHGnM6u/exec",
+    unlockTime: "2026-10-02T17:35:00+05:30",
     accentColor: "amber",
     theme: {
-      badgeBg: "bg-gray-100",
-      badgeText: "text-gray-500",
-      border: "border-gray-200",
-      borderActive: "border-gray-300",
-      hoverBorder: "hover:border-gray-200",
-      glowBg: "from-gray-500/5 to-slate-500/5",
-      btnBg: "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200",
-      btnSecondary: "text-gray-400 bg-gray-50",
-      accentText: "text-gray-400",
-      cardBorder: "border-gray-200/80",
-      iconBg: "bg-gray-100 text-gray-400",
-      pillBg: "bg-gray-50 text-gray-500 border-gray-100"
+      badgeBg: "bg-amber-50",
+      badgeText: "text-amber-700",
+      border: "border-amber-200",
+      borderActive: "border-amber-500",
+      hoverBorder: "hover:border-amber-300",
+      glowBg: "from-amber-500/10 to-yellow-500/10",
+      btnBg: "bg-amber-600 hover:bg-amber-700",
+      btnSecondary: "text-amber-700 bg-amber-50 hover:bg-amber-100",
+      accentText: "text-amber-600",
+      cardBorder: "border-amber-100",
+      iconBg: "bg-amber-100 text-amber-600",
+      pillBg: "bg-amber-50 text-amber-700 border-amber-200"
     }
   }
 ];
