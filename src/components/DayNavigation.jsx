@@ -1,16 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bootcampDays } from '../data/bootcampDays';
 import { CheckCircle2, Lock } from 'lucide-react';
 
-const DayNavigation = ({ currentDayId }) => {
+const DayNavigation = ({ currentDayId, bootcampConfig }) => {
   const navigate = useNavigate();
   const currentNum = parseInt(currentDayId, 10);
 
   // Read completed days from localStorage
   const completedDays = (() => {
     try {
-      return JSON.parse(localStorage.getItem('kq_completed_days') || '[]');
+      return JSON.parse(localStorage.getItem(bootcampConfig?.completedKey || 'kq_completed_days') || '[]');
     } catch {
       return [];
     }
@@ -25,7 +24,7 @@ const DayNavigation = ({ currentDayId }) => {
 
         {/* Scrollable pill container */}
         <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none py-0.5 max-w-full">
-          {bootcampDays.map((day) => {
+          {bootcampConfig?.days?.map((day) => {
             const isCurrent = day.id === currentNum;
             const isCompleted = completedDays.includes(day.id);
             const isClosed = day.status === 'closed';
@@ -51,7 +50,8 @@ const DayNavigation = ({ currentDayId }) => {
                 key={day.id}
                 onClick={() => {
                   if (!isNavDisabled) {
-                    navigate(day.route);
+                    const targetRoute = `/bootcamps/${bootcampConfig.slug}/day/${day.id}`;
+                    navigate(targetRoute);
                   }
                 }}
                 disabled={isNavDisabled}

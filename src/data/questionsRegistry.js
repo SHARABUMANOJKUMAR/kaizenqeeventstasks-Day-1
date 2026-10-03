@@ -3,8 +3,9 @@ import { day2Questions } from './day2Questions';
 import { day3Questions } from './day3Questions';
 import { day4Questions } from './day4Questions';
 import { day5Questions } from './day5Questions';
+import { javaDay1Questions } from './javaDay1Questions';
 
-const questionsMap = {
+const pythonQuestionsMap = {
   1: day1Questions,
   2: day2Questions,
   3: day3Questions,
@@ -12,9 +13,16 @@ const questionsMap = {
   5: day5Questions
 };
 
-export const getQuestionsForDay = (dayId) => {
+const javaQuestionsMap = {
+  1: javaDay1Questions
+};
+
+export const getQuestionsForDay = (dayId, bootcampId = 'python-with-ai') => {
   const num = parseInt(dayId, 10);
-  return questionsMap[num] || null;
+  if (bootcampId === 'java-with-ai') {
+    return javaQuestionsMap[num] || null;
+  }
+  return pythonQuestionsMap[num] || null;
 };
 
 export {
@@ -22,5 +30,6 @@ export {
   day2Questions,
   day3Questions,
   day4Questions,
-  day5Questions
+  day5Questions,
+  javaDay1Questions
 };

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle2, Home, Star, Target, Lightbulb, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
-import { getDayConfig } from '../data/bootcampDays';
+import { getBootcampConfig } from '../data/bootcamps';
 
 const SuccessPage = () => {
   const navigate = useNavigate();
@@ -34,7 +34,9 @@ const SuccessPage = () => {
 
   const name = state?.studentName || 'Student';
   const dayId = state?.dayId || 1;
-  const dayConfig = getDayConfig(dayId);
+  const bootcampId = state?.bootcampId || 'python-with-ai';
+  const bootcampConfig = getBootcampConfig(bootcampId);
+  const dayConfig = bootcampConfig?.days.find(d => d.id === dayId || d.dayNumber === dayId);
   const nextDayId = dayId < 5 ? dayId + 1 : null;
   const score = state?.score ?? 0;
   const maxScore = state?.maxScore ?? 17;
@@ -131,7 +133,7 @@ const SuccessPage = () => {
           {/* Action Buttons */}
           <div className="flex justify-center items-center">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate(`/bootcamps/${bootcampId}`)}
               className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 text-sm py-3.5 px-8"
             >
               <Home size={18} />

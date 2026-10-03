@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
+import LandingPage from './components/LandingPage';
 import BootcampHome from './components/BootcampHome';
 import RegistrationPage from './components/RegistrationPage';
 import AssessmentPage from './components/AssessmentPage';
 import SuccessPage from './components/SuccessPage';
 import MentorDashboard from './components/MentorDashboard';
 import NotFound from './components/NotFound';
-import { getDayConfig } from './data/bootcampDays';
+import { getBootcampConfig } from './data/bootcamps';
 
 // Wrapper for protected Day Assessment route that blocks locked upcoming days and guards registration
 function DayRouteWrapper({ studentData, onComplete }) {
   const location = useLocation();
   const params = useParams();
+  const bootcampId = params.bootcampId || 'python-with-ai';
   const dayId = parseInt(params.dayId || 1, 10);
-  const dayConfig = getDayConfig(dayId);
+  
+  const bootcampConfig = getBootcampConfig(bootcampId);
+  if (!bootcampConfig) {
+    return <NotFound message="Bootcamp Not Found" subtitle="This bootcamp does not exist." />;
+  }
+
+  const dayConfig = bootcampConfig.days.find(d => d.id === dayId || d.dayNumber === dayId);
 
   // Block days that do not exist or are locked
   if (!dayConfig || dayConfig.status === 'locked' || dayConfig.status === 'coming_soon' || isNaN(dayId)) {
@@ -61,8 +69,11 @@ function App() {
     <Router>
       <div className="min-h-screen bg-background font-sans text-text-main">
         <Routes>
-          {/* 5-Day Bootcamp Home */}
-          <Route path="/" element={<BootcampHome studentData={studentData} />} />
+          {/* Main Landing Page */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* Bootcamp Dashboard */}
+          <Route path="/bootcamps/:bootcampId" element={<BootcampHome studentData={studentData} />} />
           
           {/* One-Time Student Registration */}
           <Route 
@@ -75,7 +86,18 @@ function App() {
             } 
           />
 
-          {/* Dynamic Day Assessments: /day/1, /day/2, /day/3, /day/4, /day/5 */}
+          {/* Dynamic Day Assessments */}
+          <Route 
+            path="/bootcamps/:bootcampId/day/:dayId" 
+            element={
+              <DayRouteWrapper 
+                studentData={studentData} 
+                onComplete={handleAssessmentComplete}
+              />
+            } 
+          />
+
+          {/* Backward compatibility for legacy /day/:dayId routes */}
           <Route 
             path="/day/:dayId" 
             element={
@@ -86,33 +108,12 @@ function App() {
             } 
           />
 
-          {/* Alternate route pattern: /day1, /day2, etc. */}
-          <Route 
-            path="/day1" 
-            element={<Navigate to="/day/1" replace />} 
-          />
-          <Route 
-            path="/day2" 
-            element={<Navigate to="/day/2" replace />} 
-          />
-          <Route 
-            path="/day3" 
-            element={<Navigate to="/day/3" replace />} 
-          />
-          <Route 
-            path="/day4" 
-            element={<Navigate to="/day/4" replace />} 
-          />
-          <Route 
-            path="/day5" 
-            element={<Navigate to="/day/5" replace />} 
-          />
-
-          {/* Backward compatibility for legacy /assessment route */}
-          <Route 
-            path="/assessment" 
-            element={<Navigate to="/day/1" replace />} 
-          />
+          <Route path="/day1" element={<Navigate to="/bootcamps/python-with-ai/day/1" replace />} />
+          <Route path="/day2" element={<Navigate to="/bootcamps/python-with-ai/day/2" replace />} />
+          <Route path="/day3" element={<Navigate to="/bootcamps/python-with-ai/day/3" replace />} />
+          <Route path="/day4" element={<Navigate to="/bootcamps/python-with-ai/day/4" replace />} />
+          <Route path="/day5" element={<Navigate to="/bootcamps/python-with-ai/day/5" replace />} />
+          <Route path="/assessment" element={<Navigate to="/bootcamps/python-with-ai/day/1" replace />} />
 
           {/* Assessment Completion / Success Page */}
           <Route path="/success" element={<SuccessPage />} />

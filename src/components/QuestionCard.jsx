@@ -11,7 +11,8 @@ const QuestionCard = ({
   currentAnswer, 
   onAnswer, 
   onNext, 
-  onPrev 
+  onPrev,
+  bootcampId
 }) => {
   
   const isLast = questionIndex === totalQuestions - 1;
@@ -48,6 +49,7 @@ const QuestionCard = ({
               question={question} 
               currentAnswer={currentAnswer} 
               onAnswer={(ans) => onAnswer(question.id, ans)} 
+              bootcampId={bootcampId}
             />
           )}
         </div>

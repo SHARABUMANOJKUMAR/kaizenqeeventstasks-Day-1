@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getDayConfig } from '../data/bootcampDays';
+import { getBootcampConfig } from '../data/bootcamps';
 import { getQuestionsForDay } from '../data/questionsRegistry';
 import AssessmentHeader from './AssessmentHeader';
 import DayNavigation from './DayNavigation';
@@ -18,12 +18,14 @@ const AssessmentPage = ({ studentData, onComplete }) => {
   const navigate = useNavigate();
 
   // Determine current day from route params (e.g. /day/:dayId) or default to 1
+  const bootcampId = params.bootcampId || 'python-with-ai';
   const dayId = params.dayId ? parseInt(params.dayId, 10) : 1;
-  const dayConfig = useMemo(() => getDayConfig(dayId), [dayId]);
-  const questions = useMemo(() => getQuestionsForDay(dayId), [dayId]);
+  const bootcampConfig = useMemo(() => getBootcampConfig(bootcampId), [bootcampId]);
+  const dayConfig = useMemo(() => bootcampConfig?.days.find(d => d.id === dayId || d.dayNumber === dayId), [bootcampConfig, dayId]);
+  const questions = useMemo(() => getQuestionsForDay(dayId, bootcampId), [dayId, bootcampId]);
 
   const TOTAL_TIME = (dayConfig?.durationMinutes || 45) * 60; // in seconds
-  const storageKey = `kq_assessment_day_${dayId}`;
+  const storageKey = `kq_${bootcampId}_assessment_day_${dayId}`;
 
   // Read initial saved draft for this specific day
   const getInitialDraft = () => {
@@ -31,7 +33,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
       const saved = localStorage.getItem(storageKey);
       if (saved) return JSON.parse(saved);
       // Legacy backward-compatibility for Day 1
-      if (dayId === 1) {
+      if (bootcampId === 'python-with-ai' && dayId === 1) {
         const legacy = localStorage.getItem('kq_assessment');
         if (legacy) return JSON.parse(legacy);
       }
@@ -274,13 +276,15 @@ const AssessmentPage = ({ studentData, onComplete }) => {
 
       // Record completed day in localStorage
       try {
-        const completed = JSON.parse(localStorage.getItem('kq_completed_days') || '[]');
+        const completedKey = bootcampConfig?.completedKey || 'kq_completed_days';
+        const completed = JSON.parse(localStorage.getItem(completedKey) || '[]');
         if (!completed.includes(dayConfig.id)) {
-          localStorage.setItem('kq_completed_days', JSON.stringify([...completed, dayConfig.id]));
+          localStorage.setItem(completedKey, JSON.stringify([...completed, dayConfig.id]));
         }
 
         // Store in local submission log
-        const subList = JSON.parse(localStorage.getItem('kq_submissions') || '[]');
+        const subListKey = `kq_${bootcampId}_submissions`;
+        const subList = JSON.parse(localStorage.getItem(subListKey) || '[]');
         subList.unshift({
           submissionId,
           day: dayConfig.id,
@@ -291,14 +295,14 @@ const AssessmentPage = ({ studentData, onComplete }) => {
           submittedAt: new Date().toLocaleString(),
           timeTaken: TOTAL_TIME - timeRemaining
         });
-        localStorage.setItem('kq_submissions', JSON.stringify(subList.slice(0, 50)));
+        localStorage.setItem(subListKey, JSON.stringify(subList.slice(0, 50)));
       } catch (err) {
         console.error("Error updating completed days", err);
       }
 
       // Clear this day's draft
       localStorage.removeItem(storageKey);
-      if (dayConfig.id === 1) {
+      if (bootcampId === 'python-with-ai' && dayConfig.id === 1) {
         localStorage.removeItem('kq_assessment');
       }
 
@@ -313,7 +317,8 @@ const AssessmentPage = ({ studentData, onComplete }) => {
           submissionId,
           studentName: studentData.fullName,
           dayId: dayConfig.id,
-          dayTitle: dayConfig.title
+          dayTitle: dayConfig.title,
+          bootcampId
         } 
       });
     } catch (error) {
@@ -336,7 +341,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
         onTimeUp={handleTimeUp}
       />
 
-      <DayNavigation currentDayId={dayConfig.id} />
+      <DayNavigation currentDayId={dayConfig.id} bootcampConfig={bootcampConfig} />
       
       <ProgressBar 
         current={answeredCount} 
@@ -379,6 +384,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
                 onAnswer={handleAnswer}
                 onNext={handleNext}
                 onPrev={handlePrev}
+                bootcampId={bootcampId}
               />
             )}
           </AnimatePresence>

@@ -6,9 +6,12 @@ loader.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs' } }
 import ReactMarkdown from 'react-markdown';
 import { Terminal, Play, Loader2 } from 'lucide-react';
 
-const CodeQuestion = ({ question, currentAnswer, onAnswer }) => {
+const CodeQuestion = ({ question, currentAnswer, onAnswer, bootcampId }) => {
   const [output, setOutput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
+  
+  const isJava = bootcampId === 'java-with-ai';
+  const editorLanguage = isJava ? 'java' : 'python';
   
   const handleEditorChange = (value) => {
     onAnswer(value);
@@ -22,32 +25,56 @@ const CodeQuestion = ({ question, currentAnswer, onAnswer }) => {
     setOutput("Executing your code...\n");
 
     try {
-      if (!window.pyodide) {
-        setOutput("Initializing Python environment... (This may take a few seconds on first run)\n");
+      if (isJava) {
+        // Use Wandbox API for Java Execution
+        const response = await fetch('https://wandbox.org/api/compile.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            compiler: "openjdk-jdk-21+35",
+            code: codeToRun
+          })
+        });
         
-        if (!document.getElementById('pyodide-script')) {
-          await new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.id = 'pyodide-script';
-            script.src = "https://unpkg.com/pyodide@0.25.0/pyodide.js";
-            script.onload = resolve;
-            script.onerror = () => reject(new Error("Failed to load Python execution environment. Please check your internet connection."));
-            document.head.appendChild(script);
+        const data = await response.json();
+        
+        if (data.status === "0") {
+          setOutput(data.program_message || data.program_output || "Program finished with no output.");
+        } else {
+          const errMsg = data.compiler_message || data.program_message || "Compilation failed.";
+          setOutput(`Error:\n${errMsg}`);
+        }
+      } else {
+        // Python Execution via Pyodide
+        if (!window.pyodide) {
+          setOutput("Initializing Python environment... (This may take a few seconds on first run)\n");
+          
+          if (!document.getElementById('pyodide-script')) {
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.id = 'pyodide-script';
+              script.src = "https://unpkg.com/pyodide@0.25.0/pyodide.js";
+              script.onload = resolve;
+              script.onerror = () => reject(new Error("Failed to load Python execution environment. Please check your internet connection."));
+              document.head.appendChild(script);
+            });
+          }
+           
+          window.pyodide = await window.loadPyodide({
+            indexURL: "https://unpkg.com/pyodide@0.25.0/"
           });
         }
-         
-        window.pyodide = await window.loadPyodide({
-          indexURL: "https://unpkg.com/pyodide@0.25.0/"
-        });
+
+        let outputText = "";
+        window.pyodide.setStdout({ batched: (msg) => { outputText += msg + "\n"; } });
+        window.pyodide.setStderr({ batched: (msg) => { outputText += msg + "\n"; } });
+
+        await window.pyodide.runPythonAsync(codeToRun);
+        
+        setOutput(outputText || "Program finished with no output.");
       }
-
-      let outputText = "";
-      window.pyodide.setStdout({ batched: (msg) => { outputText += msg + "\n"; } });
-      window.pyodide.setStderr({ batched: (msg) => { outputText += msg + "\n"; } });
-
-      await window.pyodide.runPythonAsync(codeToRun);
-      
-      setOutput(outputText || "Program finished with no output.");
     } catch (error) {
       setOutput(`Error:\n${error.message || error}`);
     } finally {
@@ -82,7 +109,7 @@ const CodeQuestion = ({ question, currentAnswer, onAnswer }) => {
 
       <div className="flex justify-between items-center mb-2 mt-2">
         <h3 className="text-sm font-semibold text-text-main flex items-center gap-2">
-          Your Python Code
+          Your {isJava ? 'Java' : 'Python'} Code
         </h3>
         <button
           onClick={runCode}
@@ -97,7 +124,8 @@ const CodeQuestion = ({ question, currentAnswer, onAnswer }) => {
       <div className="min-h-[300px] w-full rounded-t-xl overflow-hidden border border-gray-200 border-b-0 shadow-inner">
         <Editor
           height="300px"
-          defaultLanguage="python"
+          defaultLanguage={editorLanguage}
+          language={editorLanguage}
           theme="vs-dark"
           value={currentAnswer !== undefined ? currentAnswer : question.starterCode}
           onChange={handleEditorChange}
