@@ -23,9 +23,18 @@ const QuestionCard = ({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="card flex flex-col h-full overflow-hidden"
+      className="card flex flex-col h-full overflow-hidden relative"
     >
-      <div className="p-6 md:p-8 flex-1 overflow-y-auto">
+      {/* Task Watermark */}
+      <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center opacity-[0.03]">
+        <img 
+          src="https://res.cloudinary.com/dwv8kc9vb/image/upload/v1788803368/Kaizen_Q_Logo_with_Background_qy0d1n.png" 
+          className="w-3/4 object-contain grayscale rotate-12" 
+          alt="" 
+        />
+      </div>
+
+      <div className="p-6 md:p-8 flex-1 overflow-y-auto relative z-10">
         <div className="flex items-center gap-3 mb-6">
           <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
             Question {questionIndex + 1} of {totalQuestions}

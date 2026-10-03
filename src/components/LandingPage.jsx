@@ -37,8 +37,20 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col font-sans text-text-main">
-      {/* Background decorations */}
-      <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-primary-50/50 to-transparent pointer-events-none -z-10" />
+      {/* Background decorations & Stickers */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-primary-50/50 to-transparent" />
+        <img 
+          src="/kq-stickers.jpg" 
+          alt="Kaizen Q Stickers" 
+          className="absolute -top-32 -right-40 w-[800px] opacity-[0.04] rotate-12" 
+        />
+        <img 
+          src="/kq-stickers.jpg" 
+          alt="Kaizen Q Stickers" 
+          className="absolute top-1/2 -left-40 w-[600px] opacity-[0.04] -rotate-12" 
+        />
+      </div>
       
       {/* Navbar */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
@@ -70,7 +82,22 @@ const LandingPage = () => {
               <span>🚀 Learn by Building</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-text-main tracking-tight leading-tight mb-6">
+            <style dangerouslySetInnerHTML={{__html: `
+              @keyframes gradientShift {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+              }
+              .magical-text {
+                background: linear-gradient(to right, #3b82f6, #10b981, #f59e0b, #f97316, #3b82f6);
+                background-size: 200% auto;
+                color: transparent;
+                -webkit-background-clip: text;
+                background-clip: text;
+                animation: gradientShift 4s linear infinite;
+              }
+            `}} />
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6 magical-text">
               KAIZEN Q BOOTCAMPS
             </h1>
 

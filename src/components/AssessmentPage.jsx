@@ -332,14 +332,38 @@ const AssessmentPage = ({ studentData, onComplete }) => {
   const answeredCount = Object.keys(answers).filter(k => answers[k] !== undefined && answers[k] !== '').length;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <AssessmentHeader 
-        studentName={studentData.fullName}
-        dayConfig={dayConfig}
-        timeRemaining={timeRemaining} 
-        setTimeRemaining={setTimeRemaining}
-        onTimeUp={handleTimeUp}
-      />
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      
+      {/* Background Watermarks & Stickers */}
+      <div className="fixed inset-0 pointer-events-none z-0 flex items-center justify-center opacity-[0.04]">
+        {/* Center Large Watermark */}
+        <img 
+          src="https://res.cloudinary.com/dwv8kc9vb/image/upload/v1788803368/Kaizen_Q_Logo_with_Background_qy0d1n.png" 
+          className="w-full max-w-4xl object-contain grayscale" 
+          alt="" 
+        />
+        {/* Top Right Sticker */}
+        <img 
+          src="https://res.cloudinary.com/dwv8kc9vb/image/upload/v1788803584/Shaivika_Groups_Logo_BGT_xo5vqx.png" 
+          className="absolute -top-10 -right-20 w-96 rotate-12 grayscale" 
+          alt="" 
+        />
+        {/* Bottom Left Sticker */}
+        <img 
+          src="https://res.cloudinary.com/dwv8kc9vb/image/upload/v1788465425/KAIZEN_Q_EVENTS_FAVICON_o8hwrj.png" 
+          className="absolute -bottom-10 -left-10 w-80 -rotate-12 grayscale" 
+          alt="" 
+        />
+      </div>
+
+      <div className="relative z-10 flex flex-col flex-1">
+        <AssessmentHeader 
+          studentName={studentData.fullName}
+          dayConfig={dayConfig}
+          timeRemaining={timeRemaining} 
+          setTimeRemaining={setTimeRemaining}
+          onTimeUp={handleTimeUp}
+        />
 
       <DayNavigation currentDayId={dayConfig.id} bootcampConfig={bootcampConfig} />
       
@@ -444,6 +468,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
           />
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 };
