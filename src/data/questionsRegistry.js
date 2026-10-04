@@ -4,6 +4,7 @@ import { day3Questions } from './day3Questions';
 import { day4Questions } from './day4Questions';
 import { day5Questions } from './day5Questions';
 import { javaDay1Questions } from './javaDay1Questions';
+import { javaDay2Questions } from './javaDay2Questions';
 
 const pythonQuestionsMap = {
   1: day1Questions,
@@ -14,7 +15,8 @@ const pythonQuestionsMap = {
 };
 
 const javaQuestionsMap = {
-  1: javaDay1Questions
+  1: javaDay1Questions,
+  2: javaDay2Questions
 };
 
 export const getQuestionsForDay = (dayId, bootcampId = 'python-with-ai') => {
@@ -31,5 +33,6 @@ export {
   day3Questions,
   day4Questions,
   day5Questions,
-  javaDay1Questions
+  javaDay1Questions,
+  javaDay2Questions
 };
