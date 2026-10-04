@@ -256,10 +256,16 @@ const AssessmentPage = ({ studentData, onComplete }) => {
     };
 
     try {
-      // Resolve Google Sheets API URL: checks day-specific env, then dayConfig.sheetsUrl, then default env
+      // Resolve Google Sheets API URL based on bootcamp
+      let envKeyPrefix = "VITE_GOOGLE_SHEETS_API_URL_DAY";
+      if (bootcampId === 'java-with-ai') {
+        envKeyPrefix = "VITE_JAVA_DAY";
+      }
+
       const scriptURL = 
-        import.meta.env[`VITE_GOOGLE_SHEETS_API_URL_DAY_${dayConfig.id}`] ||
-        import.meta.env[`VITE_GOOGLE_SHEETS_API_URL_DAY${dayConfig.id}`] ||
+        import.meta.env[`${envKeyPrefix}_${dayConfig.id}`] ||
+        import.meta.env[`${envKeyPrefix}${dayConfig.id}`] ||
+        import.meta.env[`VITE_GOOGLE_SHEETS_API_URL_DAY_${dayConfig.id}`] || // Fallback to generic
         dayConfig.sheetsUrl ||
         import.meta.env.VITE_GOOGLE_SHEETS_API_URL;
       
