@@ -29,7 +29,8 @@
 
 function doPost(e) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    // Force it to use the exact Day 2 Spreadsheet ID from your screenshot!
+    const ss = SpreadsheetApp.openById("1T67fq8XcVqj2vZGoTWXHmmx247mJULq3BQStD9Z4vFU");
     
     // Attempt to find sheet "Submissions", otherwise use the first sheet
     let sheet = ss.getSheetByName("Submissions");
