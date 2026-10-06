@@ -45,25 +45,56 @@ const AssessmentPage = ({ studentData, onComplete }) => {
 
   const initialData = getInitialDraft();
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const EXAM_VIOLATION_COOLDOWN_MINUTES = 2; // Configurable cooldown
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(initialData?.currentQuestionIndex || 0);
   const [answers, setAnswers] = useState(initialData?.answers || {});
   const [timeRemaining, setTimeRemaining] = useState(initialData?.timeRemaining || TOTAL_TIME);
   const [visited, setVisited] = useState(initialData?.visited || [0]);
   const [violations, setViolations] = useState(initialData?.violations || []);
   
+  const [isExamLocked, setIsExamLocked] = useState(initialData?.isExamLocked || false);
+  const [cooldownUntil, setCooldownUntil] = useState(initialData?.cooldownUntil || null);
+  const [hasStartedExam, setHasStartedExam] = useState(initialData?.hasStartedExam || false);
+  const [lastViolation, setLastViolation] = useState(initialData?.lastViolation || null);
+
   const [showReview, setShowReview] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+
+  // Cooldown Timer Logic
+  useEffect(() => {
+    let interval;
+    if (isExamLocked && cooldownUntil) {
+      interval = setInterval(() => {
+        const remaining = Math.max(0, Math.floor((cooldownUntil - new Date().getTime()) / 1000));
+        setCooldownRemaining(remaining);
+        
+        if (remaining <= 0) {
+          setIsExamLocked(false);
+          setCooldownUntil(null);
+          // Re-enter Fullscreen automatically if possible
+          try { document.documentElement.requestFullscreen().catch(() => {}); } catch(e) {}
+        }
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isExamLocked, cooldownUntil]);
 
   // When dayId changes, reload state for that day
   useEffect(() => {
     const draft = getInitialDraft();
-    setCurrentQuestionIndex(0);
+    setCurrentQuestionIndex(draft?.currentQuestionIndex || 0);
     setAnswers(draft?.answers || {});
     setTimeRemaining(draft?.timeRemaining || TOTAL_TIME);
     setVisited(draft?.visited || [0]);
     setViolations(draft?.violations || []);
+    setIsExamLocked(draft?.isExamLocked || false);
+    setCooldownUntil(draft?.cooldownUntil || null);
+    setHasStartedExam(draft?.hasStartedExam || false);
+    setLastViolation(draft?.lastViolation || null);
     setShowReview(false);
     setShowSubmitModal(false);
   }, [dayId, TOTAL_TIME]);
@@ -73,66 +104,87 @@ const AssessmentPage = ({ studentData, onComplete }) => {
     if (!dayConfig) return;
     const dataToSave = {
       dayId,
+      currentQuestionIndex,
       answers,
       timeRemaining,
       visited,
-      violations
+      violations,
+      isExamLocked,
+      cooldownUntil,
+      hasStartedExam,
+      lastViolation
     };
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-  }, [dayId, answers, timeRemaining, visited, violations, dayConfig, storageKey]);
+  }, [dayId, currentQuestionIndex, answers, timeRemaining, visited, violations, isExamLocked, cooldownUntil, hasStartedExam, lastViolation, dayConfig, storageKey]);
 
   // Anti-Cheat System (No Copy, No Right-Click, No Screenshots/Print, Tab Tracking)
   useEffect(() => {
-    const recordViolation = (type) => {
+    if (!hasStartedExam || isExamLocked) return;
+
+    const lockExam = (type) => {
       setViolations(prev => [...prev, { type, timestamp: new Date().toISOString() }]);
+      setLastViolation(type);
+      setIsExamLocked(true);
+      const cooldownMs = EXAM_VIOLATION_COOLDOWN_MINUTES * 60 * 1000;
+      setCooldownUntil(new Date().getTime() + cooldownMs);
+      
+      // Exit fullscreen safely to show modal clearly
+      try {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+      } catch(e) {}
     };
 
-    // 1. Prevent Right-Click
-    const preventContextMenu = (e) => {
-      e.preventDefault();
-      recordViolation('RIGHT_CLICK_ATTEMPT');
-    };
+    const preventContextMenu = (e) => { e.preventDefault(); lockExam('RIGHT_CLICK_ATTEMPT'); };
     
-    // 2. Prevent Copy, Cut, Paste
     const preventCopyPaste = (e) => {
       e.preventDefault();
-      recordViolation(`${e.type.toUpperCase()}_ATTEMPT`);
-      alert("Copy/Paste is disabled during the assessment.");
+      lockExam(`${e.type.toUpperCase()}_ATTEMPT`);
     };
 
-    // 3. Prevent Keyboard Shortcuts (PrintScreen, Ctrl+C, Ctrl+P, Ctrl+S, Win+Shift+S)
     const preventShortcuts = (e) => {
       if (e.key === 'PrintScreen' || e.keyCode === 44) {
         try { navigator.clipboard.writeText(''); } catch (_) {}
-        recordViolation('PRINTSCREEN_ATTEMPT');
-        alert("Screenshots are disabled.");
         e.preventDefault();
+        lockExam('SCREENSHOT_SHORTCUT_ATTEMPT');
       }
-
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 's') {
         try { navigator.clipboard.writeText(''); } catch (_) {}
-        recordViolation('SCREENSHOT_SHORTCUT_ATTEMPT');
-        alert("Screenshots are disabled.");
         e.preventDefault();
+        lockExam('SCREENSHOT_SHORTCUT_ATTEMPT');
       }
-      
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) {
+        e.preventDefault();
+        lockExam('DEVTOOLS_ATTEMPT');
+      }
+      if (e.key === 'F12') {
+        e.preventDefault();
+        lockExam('DEVTOOLS_ATTEMPT');
+      }
       if (e.ctrlKey || e.metaKey) {
-        const forbiddenKeys = ['c', 'v', 'x', 'p', 's'];
+        const forbiddenKeys = ['c', 'v', 'x', 'p', 's', 'a', 'u'];
         if (forbiddenKeys.includes(e.key.toLowerCase())) {
           e.preventDefault();
-          recordViolation(`KEYBOARD_SHORTCUT_${e.key.toUpperCase()}`);
-          if (e.key.toLowerCase() !== 'v') {
-            alert("This shortcut is disabled during the assessment.");
-          }
+          if (e.key.toLowerCase() === 'p') lockExam('PRINT_ATTEMPT');
+          else lockExam(`SUSPICIOUS_KEYBOARD_SHORTCUT`);
         }
       }
     };
 
-    // 4. Track Tab Switching (Visibility API)
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        recordViolation('TAB_SWITCH_MINIMIZE');
-        alert("Warning: Switching tabs or minimizing the window is recorded as suspicious activity during the assessment.");
+      if (document.hidden || document.visibilityState === 'hidden') {
+        lockExam('VISIBILITY_CHANGE');
+      }
+    };
+
+    const handleWindowBlur = () => {
+      lockExam('WINDOW_BLUR');
+    };
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && hasStartedExam && !isExamLocked) {
+        lockExam('FULLSCREEN_EXIT');
       }
     };
 
@@ -142,6 +194,8 @@ const AssessmentPage = ({ studentData, onComplete }) => {
     document.addEventListener("paste", preventCopyPaste);
     document.addEventListener("keydown", preventShortcuts);
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    window.addEventListener("blur", handleWindowBlur);
 
     return () => {
       document.removeEventListener("contextmenu", preventContextMenu);
@@ -150,8 +204,10 @@ const AssessmentPage = ({ studentData, onComplete }) => {
       document.removeEventListener("paste", preventCopyPaste);
       document.removeEventListener("keydown", preventShortcuts);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("blur", handleWindowBlur);
     };
-  }, []);
+  }, [hasStartedExam, isExamLocked]);
 
   // Validation: If Day does not exist
   if (!dayConfig || !questions) {
@@ -371,14 +427,75 @@ const AssessmentPage = ({ studentData, onComplete }) => {
           onTimeUp={handleTimeUp}
         />
 
-      <DayNavigation currentDayId={dayConfig.id} bootcampConfig={bootcampConfig} />
-      
-      <ProgressBar 
-        current={answeredCount} 
-        total={questions.length} 
-      />
+      {!hasStartedExam ? (
+        <div className="flex-1 flex items-center justify-center p-4 relative z-20">
+          <div className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl w-full text-center border-t-4 border-primary">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex justify-center items-center gap-2">⚠️ SECURE EXAM RULES</h2>
+            <div className="text-left space-y-3 text-gray-600 mb-8 bg-gray-50 p-6 rounded-xl border border-gray-100">
+              <p>During this exam, the following actions are strictly prohibited:</p>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 font-medium text-sm md:text-base">
+                <li className="flex items-center gap-2">❌ No Copy / Paste / Cut</li>
+                <li className="flex items-center gap-2">❌ No Tab/Window Switching</li>
+                <li className="flex items-center gap-2">❌ No Right Click</li>
+                <li className="flex items-center gap-2">❌ No Screenshot Attempts</li>
+                <li className="flex items-center gap-2">❌ No Exiting Fullscreen</li>
+                <li className="flex items-center gap-2">❌ No DevTools/Shortcuts</li>
+              </ul>
+              <p className="mt-4 text-sm font-semibold text-primary-700 bg-primary-50 p-3 rounded-lg border border-primary-100 leading-relaxed">
+                Violating these rules will temporarily lock your session. Your progress is automatically saved and you can resume after a cooldown period.
+              </p>
+            </div>
+            <button 
+              onClick={() => {
+                setHasStartedExam(true);
+                try { document.documentElement.requestFullscreen().catch(() => {}); } catch(e) {}
+              }}
+              className="bg-primary text-white font-bold py-3 px-8 rounded-xl hover:bg-primary-700 transition shadow-lg w-full md:w-auto"
+            >
+              I UNDERSTAND — START EXAM
+            </button>
+          </div>
+        </div>
+      ) : isExamLocked ? (
+        <div className="flex-1 flex items-center justify-center p-4 relative z-20">
+          <div className="bg-white p-8 rounded-2xl shadow-xl max-w-xl w-full text-center border-t-4 border-red-500 relative overflow-hidden">
+            <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-sm">🚨</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">EXAM SESSION LOCKED</h2>
+            <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-6 font-bold tracking-wide border border-red-100 text-sm md:text-base">
+              REASON: {lastViolation?.replace(/_/g, ' ')}
+            </div>
+            <div className="text-gray-600 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm text-left shadow-inner">
+              <p className="mb-3 text-center text-gray-700 font-medium">Your exam progress has been safely saved.</p>
+              <div className="flex justify-between items-center border-b border-gray-200 pb-2 mb-2">
+                <span className="font-semibold text-gray-500">Question</span>
+                <span className="font-bold text-gray-800">{currentQuestionIndex + 1} / {questions.length}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-gray-500">Answers Saved</span>
+                <span className="font-bold text-green-600">YES</span>
+              </div>
+            </div>
+            <div className="mb-2 text-gray-600 font-medium">Exam will automatically resume in:</div>
+            <div className="text-5xl font-mono font-black text-gray-800 bg-gray-100 py-4 rounded-xl mb-4 border border-gray-200 shadow-inner">
+              {Math.floor(cooldownRemaining / 60).toString().padStart(2, '0')}:{(cooldownRemaining % 60).toString().padStart(2, '0')}
+            </div>
+            <p className="text-xs md:text-sm text-gray-500 font-medium">Please remain on this page. Do not refresh.</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <DayNavigation currentDayId={dayConfig.id} bootcampConfig={bootcampConfig} />
+          
+          <div className="max-w-7xl mx-auto w-full px-4 pt-1 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+            <div className="w-full">
+              <ProgressBar current={answeredCount} total={questions.length} />
+            </div>
+            <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-bold border border-green-200 shadow-sm shrink-0 w-full md:w-auto justify-center md:justify-start">
+              🔒 SECURE MODE <span className="mx-1 opacity-50">|</span> VIOLATIONS: {violations.length}
+            </div>
+          </div>
 
-      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 gap-6">
+          <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 gap-6 relative z-10">
         
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col relative">
@@ -474,6 +591,8 @@ const AssessmentPage = ({ studentData, onComplete }) => {
           />
         )}
       </AnimatePresence>
+        </>
+      )}
       </div>
     </div>
   );
