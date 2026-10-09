@@ -1,5 +1,6 @@
 import { bootcampDays as pythonDays } from './bootcampDays';
 import { javaBootcampDays } from './javaBootcampDays';
+import { genaiBootcampDays } from './genaiBootcampDays';
 
 export const bootcamps = {
   "python-with-ai": {
@@ -35,8 +36,8 @@ export const bootcamps = {
     name: "Generative AI Bootcamp",
     slug: "generative-ai",
     description: "Master Prompt Engineering, LLMs, AI Agents & GenAI Apps",
-    status: "coming_soon",
-    days: [],
+    status: "available",
+    days: genaiBootcampDays,
     completedKey: "kq_genai_completed_days",
     totalDays: 5,
     icon: "🤖",
