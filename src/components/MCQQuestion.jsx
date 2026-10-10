@@ -49,13 +49,13 @@ const MCQQuestion = ({ question, currentAnswer, onAnswer }) => {
                 }
               `}
             >
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold mr-4 transition-colors
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-semibold mr-3 sm:mr-4 transition-colors shrink-0
                 ${isSelected ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-primary-100 group-hover:text-primary'}
               `}>
                 {letter}
               </div>
               
-              <div className="flex-1 text-text-main">
+              <div className={`flex-1 text-text-main text-sm sm:text-base ${isSelected ? 'pr-8' : ''}`}>
                 <ReactMarkdown components={components}>
                   {option}
                 </ReactMarkdown>

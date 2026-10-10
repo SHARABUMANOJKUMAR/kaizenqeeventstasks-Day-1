@@ -55,8 +55,8 @@ const AssessmentHeader = ({
           </div>
 
           {/* Active Day badge */}
-          <div className="truncate pl-1">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-primary-50 text-primary-700 border border-primary-200">
+          <div className="truncate pl-1 min-w-0">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-primary-50 text-primary-700 border border-primary-200 shrink-0">
               Day {dayNumber}
             </span>
             <span className="ml-2 text-xs sm:text-sm font-semibold text-text-main hidden md:inline truncate">
@@ -70,7 +70,7 @@ const AssessmentHeader = ({
           {studentName && (
             <div className="hidden sm:flex flex-col items-end mr-1 sm:mr-3 border-r border-gray-100 pr-3">
               <span className="text-sm font-extrabold truncate max-w-[140px] animate-color-change">
-                Kaizen Q
+                {studentName}
               </span>
               <span className="text-[11px] text-text-muted">
                 Day {dayNumber} Assessment

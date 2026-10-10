@@ -564,7 +564,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 gap-6 relative z-10">
+          <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-2 sm:p-4 gap-4 sm:gap-6 relative z-10">
         
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col relative">

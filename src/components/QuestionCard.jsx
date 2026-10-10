@@ -34,7 +34,7 @@ const QuestionCard = ({
         />
       </div>
 
-      <div className="p-6 md:p-8 flex-1 overflow-y-auto relative z-10">
+      <div className="p-4 sm:p-6 md:p-8 flex-1 overflow-y-auto relative z-10">
         <div className="flex items-center gap-3 mb-6">
           <span className="bg-primary-100 text-primary-700 px-3 py-1 rounded-full text-sm font-semibold">
             Question {questionIndex + 1} of {totalQuestions}
@@ -64,23 +64,23 @@ const QuestionCard = ({
         </div>
       </div>
 
-      <div className="bg-gray-50 border-t border-gray-100 p-4 md:px-8 flex justify-between items-center">
+      <div className="bg-gray-50 border-t border-gray-100 p-4 md:px-8 flex justify-between items-center gap-2">
         <button
           onClick={onPrev}
           disabled={questionIndex === 0}
-          className="btn-secondary flex items-center gap-2 px-4 py-2"
+          className="btn-secondary flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 flex-1 sm:flex-none text-sm sm:text-base"
         >
-          <ArrowLeft size={18} /> Previous
+          <ArrowLeft size={18} className="shrink-0" /> <span className="hidden sm:inline">Previous</span><span className="sm:hidden">Prev</span>
         </button>
 
         <button
           onClick={onNext}
-          className="btn-primary flex items-center gap-2 px-6 py-2"
+          className="btn-primary flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 flex-1 sm:flex-none text-sm sm:text-base"
         >
           {isLast ? (
-            <>Review Answers <Check size={18} /></>
+            <><span className="hidden sm:inline">Review Answers</span><span className="sm:hidden">Review</span> <Check size={18} className="shrink-0" /></>
           ) : (
-            <>Next <ArrowRight size={18} /></>
+            <>Next <ArrowRight size={18} className="shrink-0" /></>
           )}
         </button>
       </div>

@@ -23,7 +23,7 @@ const DayNavigation = ({ currentDayId, bootcampConfig }) => {
         </span>
 
         {/* Scrollable pill container */}
-        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none py-0.5 max-w-full">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none py-0.5 max-w-full min-w-0 w-full sm:w-auto">
           {bootcampConfig?.days?.map((day) => {
             const isCurrent = day.id === currentNum;
             const isCompleted = completedDays.includes(day.id);

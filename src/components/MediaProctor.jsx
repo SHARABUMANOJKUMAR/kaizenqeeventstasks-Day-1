@@ -22,6 +22,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
   const modelRef = useRef(null);
   const consecutivePhonesRef = useRef(0);
   const [phoneWarning, setPhoneWarning] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(window.innerWidth < 768); // Auto-minimize on mobile
 
   const isActiveRef = useRef(isActive);
   useEffect(() => {
@@ -226,28 +227,41 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
   // Hide video frame completely if initializing to prevent flashing
   const containerClass = cameraState === CAMERA_STATES.INITIALIZING 
     ? 'hidden' 
-    : 'fixed bottom-4 right-4 w-32 h-24 bg-black rounded-lg overflow-hidden shadow-2xl border-2 border-primary/50 z-50 pointer-events-none opacity-80';
+    : `fixed z-50 transition-all duration-300 shadow-2xl border-2 border-primary/50 overflow-hidden bg-black rounded-lg cursor-pointer ${
+        isMinimized 
+          ? 'bottom-20 right-4 w-16 h-24 md:bottom-4 md:right-4 md:w-24 md:h-20 opacity-60' 
+          : 'bottom-20 right-4 w-24 h-32 md:bottom-4 md:right-4 md:w-48 md:h-36 opacity-90 hover:opacity-100'
+      }`;
 
   return (
     <>
       {phoneWarning && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 text-yellow-800 px-6 py-4 rounded-xl shadow-2xl z-50 animate-pulse text-center max-w-md">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-yellow-100 border-2 border-yellow-400 text-yellow-800 px-6 py-4 rounded-xl shadow-2xl z-50 animate-pulse text-center max-w-md w-[90%] md:w-auto">
           <p className="font-bold text-lg mb-1">⚠️ Possible Device Detected</p>
           <p className="text-sm">Mobile phone detected in the camera view. Please keep external devices away during the assessment.</p>
         </div>
       )}
-      <div className={containerClass}>
+      <div 
+        className={containerClass}
+        onClick={() => setIsMinimized(!isMinimized)}
+        title={isMinimized ? "Click to expand camera preview" : "Click to minimize camera preview"}
+      >
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-cover transform -scale-x-100"
+          className={`w-full h-full object-cover transform -scale-x-100 transition-opacity ${isMinimized ? 'opacity-50' : 'opacity-100'}`}
         />
-        <div className="absolute bottom-1 left-1 bg-black/60 px-2 py-0.5 rounded text-[8px] text-white font-mono flex items-center gap-1">
+        <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-[8px] text-white font-mono flex items-center gap-1 backdrop-blur-sm">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-          RECORDING
+          {isMinimized ? 'REC' : 'RECORDING'}
         </div>
+        {isMinimized && (
+          <div className="absolute top-1 right-1 bg-black/60 rounded p-0.5 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          </div>
+        )}
       </div>
     </>
   );
