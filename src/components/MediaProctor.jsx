@@ -62,11 +62,6 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
         const startTime = Date.now();
 
         const checkCameraHealth = () => {
-          if (!isActiveRef.current) {
-            cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
-            return;
-          }
-
           if (streamRef.current && videoRef.current) {
             const videoTrack = streamRef.current.getVideoTracks()[0];
             const isGracePeriod = Date.now() - startTime < 10000; // 10 seconds grace period for hardware init
@@ -77,7 +72,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
                 consecutiveUnavailable++;
                 if (consecutiveUnavailable > 3) {
                   if (isCameraHealthy) {
-                    onViolation('CAMERA_UNAVAILABLE');
+                    if (isActiveRef.current) onViolation('CAMERA_UNAVAILABLE');
                     isCameraHealthy = false;
                     onCameraStatus?.(false);
                     onCameraWarning?.("Your camera is unavailable. Your assessment has been saved and temporarily locked. Restore camera access to continue.");
@@ -118,7 +113,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
                   consecutiveObstructed++;
                   if (consecutiveObstructed >= 4) { // Configurable duration (4 seconds)
                     if (isCameraHealthy) {
-                      onViolation('CAMERA_OBSTRUCTED');
+                      if (isActiveRef.current) onViolation('CAMERA_OBSTRUCTED');
                       isCameraHealthy = false;
                       onCameraStatus?.(false);
                       onCameraWarning?.("Camera visibility is obstructed. Please uncover the camera and keep your face visible during the assessment.");
@@ -144,7 +139,8 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
 
       } catch (err) {
         console.error("Media devices error:", err);
-        setError("Camera and Microphone permissions are required for this proctored exam.");
+        setError("Camera permission is required for this proctored exam.");
+        onCameraStatus?.(false);
         if (isActiveRef.current) {
           onViolation('MEDIA_PERMISSION_DENIED');
         }

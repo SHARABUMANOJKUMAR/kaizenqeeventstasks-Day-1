@@ -84,7 +84,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
         setCooldownRemaining(remaining);
         
         // Automatic resumption
-        if (remaining <= 0 && isCameraReady) {
+        if (remaining <= 0 && isCameraReady && document.fullscreenElement) {
           setIsExamLocked(false);
           setCooldownUntil(null);
           setCameraWarningMsg(null);
