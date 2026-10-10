@@ -466,16 +466,26 @@ const AssessmentPage = ({ studentData, onComplete }) => {
             </div>
             <button 
               onClick={async () => {
-                const el = document.documentElement;
                 try {
-                  if (el.requestFullscreen) await el.requestFullscreen();
-                  else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-                  else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
-                  else if (el.msRequestFullscreen) await el.msRequestFullscreen();
-                } catch(e) {
-                  console.warn("Fullscreen error", e);
+                  // Ask for camera permission first
+                  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                  stream.getTracks().forEach(track => track.stop());
+
+                  // Now request fullscreen
+                  const el = document.documentElement;
+                  try {
+                    if (el.requestFullscreen) await el.requestFullscreen();
+                    else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+                    else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
+                    else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+                  } catch(e) {
+                    console.warn("Fullscreen error", e);
+                  }
+                  
+                  setHasStartedExam(true);
+                } catch(err) {
+                  alert("Camera permission is required to start the exam. Please allow camera access in your browser settings.");
                 }
-                setHasStartedExam(true);
               }}
               className="bg-primary text-white font-bold py-3 px-8 rounded-xl hover:bg-primary-700 transition shadow-lg w-full md:w-auto"
             >
@@ -517,18 +527,26 @@ const AssessmentPage = ({ studentData, onComplete }) => {
               isCameraReady ? (
                 <button 
                   onClick={async () => {
-                    const el = document.documentElement;
                     try {
-                      if (el.requestFullscreen) await el.requestFullscreen();
-                      else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-                      else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
-                      else if (el.msRequestFullscreen) await el.msRequestFullscreen();
-                    } catch(e) {
-                      console.warn("Fullscreen error", e);
+                      // Ask for camera permission first
+                      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                      stream.getTracks().forEach(track => track.stop());
+
+                      const el = document.documentElement;
+                      try {
+                        if (el.requestFullscreen) await el.requestFullscreen();
+                        else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+                        else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
+                        else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+                      } catch(e) {
+                        console.warn("Fullscreen error", e);
+                      }
+                      setIsExamLocked(false);
+                      setCooldownUntil(null);
+                      setCameraWarningMsg(null);
+                    } catch(err) {
+                      alert("Camera permission is required to resume the exam. Please allow camera access.");
                     }
-                    setIsExamLocked(false);
-                    setCooldownUntil(null);
-                    setCameraWarningMsg(null);
                   }}
                   className="mt-4 bg-red-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-red-700 w-full"
                 >
