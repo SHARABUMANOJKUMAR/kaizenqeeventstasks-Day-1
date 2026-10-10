@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBootcampConfig } from '../data/bootcamps';
@@ -11,6 +11,7 @@ import QuestionNavigator from './QuestionNavigator';
 import ReviewPage from './ReviewPage';
 import SubmissionModal from './SubmissionModal';
 import NotFound from './NotFound';
+import MediaProctor from './MediaProctor';
 import { ListChecks } from 'lucide-react';
 
 const AssessmentPage = ({ studentData, onComplete }) => {
@@ -31,11 +32,19 @@ const AssessmentPage = ({ studentData, onComplete }) => {
   const getInitialDraft = () => {
     try {
       const saved = localStorage.getItem(storageKey);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        parsed.hasStartedExam = false; // Force require clicking resume
+        return parsed;
+      }
       // Legacy backward-compatibility for Day 1
       if (bootcampId === 'python-with-ai' && dayId === 1) {
         const legacy = localStorage.getItem('kq_assessment');
-        if (legacy) return JSON.parse(legacy);
+        if (legacy) {
+          const parsed = JSON.parse(legacy);
+          parsed.hasStartedExam = false; // Force require clicking resume
+          return parsed;
+        }
       }
     } catch (e) {
       console.error("Error reading saved draft", e);
@@ -63,6 +72,8 @@ const AssessmentPage = ({ studentData, onComplete }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [isCameraReady, setIsCameraReady] = useState(true);
+  const [cameraWarningMsg, setCameraWarningMsg] = useState(null);
 
   // Cooldown Timer Logic
   useEffect(() => {
@@ -72,16 +83,16 @@ const AssessmentPage = ({ studentData, onComplete }) => {
         const remaining = Math.max(0, Math.floor((cooldownUntil - new Date().getTime()) / 1000));
         setCooldownRemaining(remaining);
         
-        if (remaining <= 0) {
+        // Automatic resumption
+        if (remaining <= 0 && isCameraReady) {
           setIsExamLocked(false);
           setCooldownUntil(null);
-          // Re-enter Fullscreen automatically if possible
-          try { document.documentElement.requestFullscreen().catch(() => {}); } catch(e) {}
+          setCameraWarningMsg(null);
         }
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isExamLocked, cooldownUntil]);
+  }, [isExamLocked, cooldownUntil, isCameraReady]);
 
   // When dayId changes, reload state for that day
   useEffect(() => {
@@ -117,24 +128,21 @@ const AssessmentPage = ({ studentData, onComplete }) => {
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
   }, [dayId, currentQuestionIndex, answers, timeRemaining, visited, violations, isExamLocked, cooldownUntil, hasStartedExam, lastViolation, dayConfig, storageKey]);
 
-  // Anti-Cheat System (No Copy, No Right-Click, No Screenshots/Print, Tab Tracking)
+  // Anti-Cheat System (No Copy, No Right-Click, No Screenshots/Print, Tab Tracking, Media)
+  const handleViolation = useCallback((type) => {
+    if (isExamLocked) return;
+    setViolations(prev => [...prev, { type, timestamp: new Date().toISOString() }]);
+    setLastViolation(type);
+    setIsExamLocked(true);
+    const cooldownMs = EXAM_VIOLATION_COOLDOWN_MINUTES * 60 * 1000;
+    setCooldownUntil(new Date().getTime() + cooldownMs);
+    // Removed exitFullscreen to allow automatic resumption
+  }, [isExamLocked, EXAM_VIOLATION_COOLDOWN_MINUTES]);
+
   useEffect(() => {
     if (!hasStartedExam || isExamLocked) return;
 
-    const lockExam = (type) => {
-      setViolations(prev => [...prev, { type, timestamp: new Date().toISOString() }]);
-      setLastViolation(type);
-      setIsExamLocked(true);
-      const cooldownMs = EXAM_VIOLATION_COOLDOWN_MINUTES * 60 * 1000;
-      setCooldownUntil(new Date().getTime() + cooldownMs);
-      
-      // Exit fullscreen safely to show modal clearly
-      try {
-        if (document.fullscreenElement) {
-          document.exitFullscreen().catch(() => {});
-        }
-      } catch(e) {}
-    };
+    const lockExam = handleViolation;
 
     const preventContextMenu = (e) => { e.preventDefault(); lockExam('RIGHT_CLICK_ATTEMPT'); };
     
@@ -178,7 +186,13 @@ const AssessmentPage = ({ studentData, onComplete }) => {
       }
     };
 
+    let gracePeriod = true;
+    const graceTimer = setTimeout(() => {
+      gracePeriod = false;
+    }, 10000); // 10 second grace period for camera permission prompts
+
     const handleWindowBlur = () => {
+      if (gracePeriod) return; // Ignore blur during camera permission prompt
       lockExam('WINDOW_BLUR');
     };
 
@@ -371,6 +385,10 @@ const AssessmentPage = ({ studentData, onComplete }) => {
       if (onComplete) {
         onComplete(dayConfig.id);
       }
+      
+      if (document.fullscreenElement) {
+        try { document.exitFullscreen().catch(() => {}); } catch (e) {}
+      }
 
       navigate('/success', { 
         state: { 
@@ -440,15 +458,24 @@ const AssessmentPage = ({ studentData, onComplete }) => {
                 <li className="flex items-center gap-2">❌ No Screenshot Attempts</li>
                 <li className="flex items-center gap-2">❌ No Exiting Fullscreen</li>
                 <li className="flex items-center gap-2">❌ No DevTools/Shortcuts</li>
+                <li className="flex items-center gap-2 text-primary-600">🎥 Camera Monitoring Active</li>
               </ul>
               <p className="mt-4 text-sm font-semibold text-primary-700 bg-primary-50 p-3 rounded-lg border border-primary-100 leading-relaxed">
                 Violating these rules will temporarily lock your session. Your progress is automatically saved and you can resume after a cooldown period.
               </p>
             </div>
             <button 
-              onClick={() => {
+              onClick={async () => {
+                const el = document.documentElement;
+                try {
+                  if (el.requestFullscreen) await el.requestFullscreen();
+                  else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+                  else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
+                  else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+                } catch(e) {
+                  console.warn("Fullscreen error", e);
+                }
                 setHasStartedExam(true);
-                try { document.documentElement.requestFullscreen().catch(() => {}); } catch(e) {}
               }}
               className="bg-primary text-white font-bold py-3 px-8 rounded-xl hover:bg-primary-700 transition shadow-lg w-full md:w-auto"
             >
@@ -475,11 +502,48 @@ const AssessmentPage = ({ studentData, onComplete }) => {
                 <span className="font-bold text-green-600">YES</span>
               </div>
             </div>
+            
+            {cameraWarningMsg && (
+              <div className="bg-yellow-50 text-yellow-800 border border-yellow-200 p-4 rounded-lg mb-6 text-sm font-medium text-left shadow-sm">
+                ⚠️ {cameraWarningMsg}
+              </div>
+            )}
+            
             <div className="mb-2 text-gray-600 font-medium">Exam will automatically resume in:</div>
             <div className="text-5xl font-mono font-black text-gray-800 bg-gray-100 py-4 rounded-xl mb-4 border border-gray-200 shadow-inner">
               {Math.floor(cooldownRemaining / 60).toString().padStart(2, '0')}:{(cooldownRemaining % 60).toString().padStart(2, '0')}
             </div>
-            <p className="text-xs md:text-sm text-gray-500 font-medium">Please remain on this page. Do not refresh.</p>
+            {cooldownRemaining <= 0 ? (
+              isCameraReady ? (
+                <button 
+                  onClick={async () => {
+                    const el = document.documentElement;
+                    try {
+                      if (el.requestFullscreen) await el.requestFullscreen();
+                      else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+                      else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
+                      else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+                    } catch(e) {
+                      console.warn("Fullscreen error", e);
+                    }
+                    setIsExamLocked(false);
+                    setCooldownUntil(null);
+                    setCameraWarningMsg(null);
+                  }}
+                  className="mt-4 bg-red-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-red-700 w-full"
+                >
+                  RESUME EXAM
+                </button>
+              ) : (
+                <p className="text-sm text-red-600 font-bold mt-4 border border-red-200 bg-red-50 p-3 rounded">
+                  {cameraWarningMsg || 'Camera requirements are not met. Please ensure your camera is connected and unobstructed to resume.'}
+                </p>
+              )
+            ) : (
+              <p className="text-xs md:text-sm text-gray-500 font-medium">
+                Your assessment is temporarily locked. You can resume in {Math.floor(cooldownRemaining / 60).toString().padStart(2, '0')}:{(cooldownRemaining % 60).toString().padStart(2, '0')}. Your saved answers will be restored automatically when the cooldown ends and the camera requirements are satisfied.
+              </p>
+            )}
           </div>
         </div>
       ) : (
@@ -592,6 +656,15 @@ const AssessmentPage = ({ studentData, onComplete }) => {
         )}
       </AnimatePresence>
         </>
+      )}
+      
+      {hasStartedExam && (
+        <MediaProctor 
+          onViolation={handleViolation} 
+          isActive={hasStartedExam && !isExamLocked} 
+          onCameraStatus={setIsCameraReady}
+          onCameraWarning={setCameraWarningMsg}
+        />
       )}
       </div>
     </div>

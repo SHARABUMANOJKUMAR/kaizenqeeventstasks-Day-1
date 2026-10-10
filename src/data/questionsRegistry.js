@@ -10,6 +10,9 @@ import { javaDay4Questions } from './javaDay4Questions';
 import { javaDay5Questions } from './javaDay5Questions';
 import { genaiDay1Questions } from './genaiDay1Questions';
 import { genaiDay2Questions } from './genaiDay2Questions';
+import { genaiDay3Questions } from './genaiDay3Questions';
+import { genaiDay4Questions } from './genaiDay4Questions';
+import { genaiDay5Questions } from './genaiDay5Questions';
 
 const pythonQuestionsMap = {
   1: day1Questions,
@@ -29,7 +32,10 @@ const javaQuestionsMap = {
 
 const genaiQuestionsMap = {
   1: genaiDay1Questions,
-  2: genaiDay2Questions
+  2: genaiDay2Questions,
+  3: genaiDay3Questions,
+  4: genaiDay4Questions,
+  5: genaiDay5Questions
 };
 
 export const getQuestionsForDay = (dayId, bootcampId = 'python-with-ai') => {
@@ -54,5 +60,8 @@ export {
   javaDay4Questions,
   javaDay5Questions,
   genaiDay1Questions,
-  genaiDay2Questions
+  genaiDay2Questions,
+  genaiDay3Questions,
+  genaiDay4Questions,
+  genaiDay5Questions
 };
