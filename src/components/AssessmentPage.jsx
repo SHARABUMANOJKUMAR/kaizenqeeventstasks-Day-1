@@ -72,8 +72,18 @@ const AssessmentPage = ({ studentData, onComplete }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
-  const [isCameraReady, setIsCameraReady] = useState(true);
-  const [cameraWarningMsg, setCameraWarningMsg] = useState(null);
+  const [isCameraReady, setIsCameraReady] = useState(false); // start false so rules page waits for it
+  const [cameraWarningMsg, setCameraWarningMsg] = useState("Initializing camera...");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Track fullscreen state dynamically
+  useEffect(() => {
+    const handleFs = () => setIsFullscreen(!!document.fullscreenElement);
+    // Initial check
+    handleFs();
+    document.addEventListener("fullscreenchange", handleFs);
+    return () => document.removeEventListener("fullscreenchange", handleFs);
+  }, []);
 
   // Cooldown Timer Logic
   useEffect(() => {
@@ -196,19 +206,12 @@ const AssessmentPage = ({ studentData, onComplete }) => {
       lockExam('WINDOW_BLUR');
     };
 
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement && hasStartedExam && !isExamLocked) {
-        lockExam('FULLSCREEN_EXIT');
-      }
-    };
-
     document.addEventListener("contextmenu", preventContextMenu);
     document.addEventListener("copy", preventCopyPaste);
     document.addEventListener("cut", preventCopyPaste);
     document.addEventListener("paste", preventCopyPaste);
     document.addEventListener("keydown", preventShortcuts);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
     window.addEventListener("blur", handleWindowBlur);
 
     return () => {
@@ -218,7 +221,6 @@ const AssessmentPage = ({ studentData, onComplete }) => {
       document.removeEventListener("paste", preventCopyPaste);
       document.removeEventListener("keydown", preventShortcuts);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
       window.removeEventListener("blur", handleWindowBlur);
     };
   }, [hasStartedExam, isExamLocked]);
@@ -445,6 +447,13 @@ const AssessmentPage = ({ studentData, onComplete }) => {
           onTimeUp={handleTimeUp}
         />
 
+      <MediaProctor 
+        onViolation={handleViolation} 
+        isActive={hasStartedExam && !isExamLocked && isCameraReady} 
+        onCameraStatus={setIsCameraReady}
+        onCameraWarning={setCameraWarningMsg}
+      />
+
       {!hasStartedExam ? (
         <div className="flex-1 flex items-center justify-center p-4 relative z-20">
           <div className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl w-full text-center border-t-4 border-primary">
@@ -464,14 +473,16 @@ const AssessmentPage = ({ studentData, onComplete }) => {
                 Violating these rules will temporarily lock your session. Your progress is automatically saved and you can resume after a cooldown period.
               </p>
             </div>
-            <button 
-              onClick={async () => {
-                try {
-                  // Ask for camera permission first
-                  const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                  stream.getTracks().forEach(track => track.stop());
-
-                  // Now request fullscreen
+            
+            {!isCameraReady ? (
+              <div className="bg-orange-50 text-orange-700 p-4 rounded-xl border border-orange-200 font-semibold animate-pulse flex flex-col items-center gap-2">
+                <span className="text-2xl">📷</span>
+                <span>{cameraWarningMsg || "Waiting for camera permissions..."}</span>
+                <span className="text-sm font-normal">Please allow camera access in your browser to start the exam.</span>
+              </div>
+            ) : (
+              <button 
+                onClick={async () => {
                   const el = document.documentElement;
                   try {
                     if (el.requestFullscreen) await el.requestFullscreen();
@@ -481,16 +492,13 @@ const AssessmentPage = ({ studentData, onComplete }) => {
                   } catch(e) {
                     console.warn("Fullscreen error", e);
                   }
-                  
                   setHasStartedExam(true);
-                } catch(err) {
-                  alert("Camera permission is required to start the exam. Please allow camera access in your browser settings.");
-                }
-              }}
-              className="bg-primary text-white font-bold py-3 px-8 rounded-xl hover:bg-primary-700 transition shadow-lg w-full md:w-auto"
-            >
-              I UNDERSTAND — START EXAM
-            </button>
+                }}
+                className="bg-primary text-white font-bold py-3 px-8 rounded-xl hover:bg-primary-700 transition shadow-lg w-full md:w-auto"
+              >
+                I UNDERSTAND — START EXAM
+              </button>
+            )}
           </div>
         </div>
       ) : isExamLocked ? (
@@ -513,53 +521,32 @@ const AssessmentPage = ({ studentData, onComplete }) => {
               </div>
             </div>
             
-            {cameraWarningMsg && (
-              <div className="bg-yellow-50 text-yellow-800 border border-yellow-200 p-4 rounded-lg mb-6 text-sm font-medium text-left shadow-sm">
-                ⚠️ {cameraWarningMsg}
-              </div>
-            )}
-            
             <div className="mb-2 text-gray-600 font-medium">Exam will automatically resume in:</div>
             <div className="text-5xl font-mono font-black text-gray-800 bg-gray-100 py-4 rounded-xl mb-4 border border-gray-200 shadow-inner">
               {Math.floor(cooldownRemaining / 60).toString().padStart(2, '0')}:{(cooldownRemaining % 60).toString().padStart(2, '0')}
             </div>
             {cooldownRemaining <= 0 ? (
-              isCameraReady ? (
                 <button 
                   onClick={async () => {
+                    const el = document.documentElement;
                     try {
-                      // Ask for camera permission first
-                      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                      stream.getTracks().forEach(track => track.stop());
-
-                      const el = document.documentElement;
-                      try {
-                        if (el.requestFullscreen) await el.requestFullscreen();
-                        else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
-                        else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
-                        else if (el.msRequestFullscreen) await el.msRequestFullscreen();
-                      } catch(e) {
-                        console.warn("Fullscreen error", e);
-                      }
-                      setIsExamLocked(false);
-                      setCooldownUntil(null);
-                      setCameraWarningMsg(null);
-                    } catch(err) {
-                      alert("Camera permission is required to resume the exam. Please allow camera access.");
+                      if (el.requestFullscreen) await el.requestFullscreen();
+                      else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+                      else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
+                      else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+                    } catch(e) {
+                      console.warn("Fullscreen error", e);
                     }
+                    setIsExamLocked(false);
+                    setCooldownUntil(null);
                   }}
                   className="mt-4 bg-red-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-red-700 w-full"
                 >
                   RESUME EXAM
                 </button>
-              ) : (
-                <p className="text-sm text-red-600 font-bold mt-4 border border-red-200 bg-red-50 p-3 rounded">
-                  {cameraWarningMsg || 'Camera requirements are not met. Please ensure your camera is connected and unobstructed to resume.'}
-                </p>
-              )
             ) : (
               <p className="text-xs md:text-sm text-gray-500 font-medium">
-                Your assessment is temporarily locked. You can resume in {Math.floor(cooldownRemaining / 60).toString().padStart(2, '0')}:{(cooldownRemaining % 60).toString().padStart(2, '0')}. Your saved answers will be restored automatically when the cooldown ends and the camera requirements are satisfied.
+                Your assessment is temporarily locked. You can resume in {Math.floor(cooldownRemaining / 60).toString().padStart(2, '0')}:{(cooldownRemaining % 60).toString().padStart(2, '0')}. Your saved answers will be restored automatically when the cooldown ends.
               </p>
             )}
           </div>
@@ -582,6 +569,48 @@ const AssessmentPage = ({ studentData, onComplete }) => {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col relative">
           
+          {/* Camera Requirement Overlay */}
+          {!isCameraReady && (
+            <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-sm flex items-center justify-center rounded-2xl border-2 border-red-200">
+              <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center border-t-4 border-red-500">
+                <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">📷</div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Camera Access Required</h3>
+                <p className="text-gray-600 mb-6 text-sm">
+                  {cameraWarningMsg || "Waiting for camera initialization..."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Fullscreen Overlay */}
+          {!isFullscreen && (
+            <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-sm flex items-center justify-center rounded-2xl border-2 border-blue-200">
+              <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center border-t-4 border-blue-500">
+                <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🖥️</div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">Fullscreen Required</h3>
+                <p className="text-gray-600 mb-6 text-sm">
+                  You must be in fullscreen mode to continue taking the assessment.
+                </p>
+                <button
+                  onClick={async () => {
+                    const el = document.documentElement;
+                    try {
+                      if (el.requestFullscreen) await el.requestFullscreen();
+                      else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+                      else if (el.mozRequestFullScreen) await el.mozRequestFullScreen();
+                      else if (el.msRequestFullscreen) await el.msRequestFullscreen();
+                    } catch(e) {
+                      console.warn("Fullscreen error", e);
+                    }
+                  }}
+                  className="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition w-full"
+                >
+                  Enter Fullscreen
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Mobile Nav Toggle */}
           <div className="md:hidden flex justify-end mb-4">
             <button 

@@ -2,17 +2,42 @@ import React, { useEffect, useRef, useState } from 'react';
 import '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
+// Explicit Lifecycle States
+const CAMERA_STATES = {
+  INITIALIZING: 'INITIALIZING',
+  READY: 'READY',
+  OBSTRUCTED: 'OBSTRUCTED',
+  UNAVAILABLE: 'UNAVAILABLE',
+  DENIED: 'DENIED',
+};
+
 const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }) => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   
-  const [hasPermission, setHasPermission] = useState(false);
-  const [error, setError] = useState(null);
+  const [cameraState, setCameraState] = useState(CAMERA_STATES.INITIALIZING);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   // Object Detection state
   const modelRef = useRef(null);
   const consecutivePhonesRef = useRef(0);
   const [phoneWarning, setPhoneWarning] = useState(false);
+
+  const isActiveRef = useRef(isActive);
+  useEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
+
+  // Sync internal state with parent callbacks
+  useEffect(() => {
+    if (cameraState === CAMERA_STATES.READY) {
+      onCameraStatus?.(true);
+      onCameraWarning?.(null);
+    } else {
+      onCameraStatus?.(false);
+      onCameraWarning?.(errorMsg || "Camera is not ready.");
+    }
+  }, [cameraState, errorMsg, onCameraStatus, onCameraWarning]);
 
   // Load CocoSSD model
   useEffect(() => {
@@ -20,9 +45,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
     const loadModel = async () => {
       try {
         const loadedModel = await cocoSsd.load();
-        if (isMounted) {
-          modelRef.current = loadedModel;
-        }
+        if (isMounted) modelRef.current = loadedModel;
       } catch (e) {
         console.error("Failed to load coco-ssd model:", e);
       }
@@ -31,29 +54,30 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
     return () => { isMounted = false; };
   }, []);
 
-  const isActiveRef = useRef(isActive);
-  useEffect(() => {
-    isActiveRef.current = isActive;
-  }, [isActive]);
-
   // Stream Setup and Camera Health Checks
   useEffect(() => {
     let cameraCheckTimeoutId;
-    let isCameraHealthy = true;
     let consecutiveObstructed = 0;
     let consecutiveUnavailable = 0;
+    let currentState = CAMERA_STATES.INITIALIZING;
+
+    const setState = (newState, newErrorMsg = null) => {
+      if (currentState !== newState) {
+        currentState = newState;
+        setCameraState(newState);
+        if (newErrorMsg !== undefined) setErrorMsg(newErrorMsg);
+      }
+    };
 
     const startMedia = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         streamRef.current = stream;
-        setHasPermission(true);
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
 
-        // --- Camera Health Check Loop (Obstruction & Availability) ---
         const canvas = document.createElement('canvas');
         canvas.width = 64;
         canvas.height = 64;
@@ -62,76 +86,73 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
         const startTime = Date.now();
 
         const checkCameraHealth = () => {
-          if (streamRef.current && videoRef.current) {
-            const videoTrack = streamRef.current.getVideoTracks()[0];
-            const isGracePeriod = Date.now() - startTime < 10000; // 10 seconds grace period for hardware init
-            
-            // 1. Check if track is muted, ended, or null
-            if (!videoTrack || videoTrack.muted || videoTrack.readyState === 'ended' || videoRef.current.readyState < 2) {
-              if (!isGracePeriod) {
-                consecutiveUnavailable++;
-                if (consecutiveUnavailable > 3) {
-                  if (isCameraHealthy) {
-                    if (isActiveRef.current) onViolation('CAMERA_UNAVAILABLE');
-                    isCameraHealthy = false;
-                    onCameraStatus?.(false);
-                    onCameraWarning?.("Your camera is unavailable. Your assessment has been saved and temporarily locked. Restore camera access to continue.");
-                  }
-                }
-              }
-              // Skip obstruction check if unavailable
-              cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
-              return;
-            } else {
-              consecutiveUnavailable = 0;
-            }
-
-            // 2. Obstruction check (luminance & variance)
-            try {
-              if (videoRef.current.videoWidth > 0 && videoRef.current.videoHeight > 0) {
-                ctx.drawImage(videoRef.current, 0, 0, 64, 64);
-                const imageData = ctx.getImageData(0, 0, 64, 64).data;
-                let sum = 0;
-                let sumSq = 0;
-                const pixelCount = 64 * 64;
-                
-                for (let i = 0; i < imageData.length; i += 4) {
-                  const luma = 0.299 * imageData[i] + 0.587 * imageData[i+1] + 0.114 * imageData[i+2];
-                  sum += luma;
-                  sumSq += luma * luma;
-                }
-                
-                const mean = sum / pixelCount;
-                const variance = (sumSq / pixelCount) - (mean * mean);
-
-                // Obstruction criteria: extremely dark, extremely bright, or practically zero variance
-                const isDark = mean < 15;
-                const isBright = mean > 240;
-                const isLowContrast = variance < 50;
-
-                if (isDark || isBright || isLowContrast) {
-                  consecutiveObstructed++;
-                  if (consecutiveObstructed >= 4) { // Configurable duration (4 seconds)
-                    if (isCameraHealthy) {
-                      if (isActiveRef.current) onViolation('CAMERA_OBSTRUCTED');
-                      isCameraHealthy = false;
-                      onCameraStatus?.(false);
-                      onCameraWarning?.("Camera visibility is obstructed. Please uncover the camera and keep your face visible during the assessment.");
-                    }
-                  }
-                } else {
-                  consecutiveObstructed = Math.max(0, consecutiveObstructed - 1);
-                  if (consecutiveObstructed === 0 && !isCameraHealthy) {
-                    isCameraHealthy = true;
-                    onCameraStatus?.(true);
-                    onCameraWarning?.(null);
-                  }
-                }
-              }
-            } catch (e) {
-              console.error("Obstruction check failed:", e);
-            }
+          if (!streamRef.current || !videoRef.current) {
+            cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
+            return;
           }
+
+          const videoTrack = streamRef.current.getVideoTracks()[0];
+          const timeSinceStart = Date.now() - startTime;
+          const isGracePeriod = timeSinceStart < 10000;
+          
+          // 1. Availability Check
+          if (!videoTrack || videoTrack.muted || videoTrack.readyState === 'ended' || videoRef.current.readyState < 2) {
+            if (isGracePeriod && currentState === CAMERA_STATES.INITIALIZING) {
+              // Still initializing
+            } else {
+              consecutiveUnavailable++;
+              if (consecutiveUnavailable >= 3) {
+                setState(CAMERA_STATES.UNAVAILABLE, "Your camera is unavailable. Please check your connection and browser permissions.");
+                if (isActiveRef.current) onViolation('CAMERA_UNAVAILABLE');
+              }
+            }
+            cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
+            return;
+          } else {
+            consecutiveUnavailable = 0;
+          }
+
+          // 2. Obstruction Check (only if readyState >= 2)
+          try {
+            if (videoRef.current.videoWidth > 0 && videoRef.current.videoHeight > 0) {
+              ctx.drawImage(videoRef.current, 0, 0, 64, 64);
+              const imageData = ctx.getImageData(0, 0, 64, 64).data;
+              let sum = 0, sumSq = 0;
+              const pixelCount = 64 * 64;
+              
+              for (let i = 0; i < imageData.length; i += 4) {
+                const luma = 0.299 * imageData[i] + 0.587 * imageData[i+1] + 0.114 * imageData[i+2];
+                sum += luma;
+                sumSq += luma * luma;
+              }
+              
+              const mean = sum / pixelCount;
+              const variance = (sumSq / pixelCount) - (mean * mean);
+
+              const isDark = mean < 15;
+              const isBright = mean > 240;
+              const isLowContrast = variance < 50;
+
+              if (isDark || isBright || isLowContrast) {
+                // If we are just starting up, skip obstruction check for the first 8 seconds (lens adjustment)
+                if (timeSinceStart > 8000) {
+                  consecutiveObstructed++;
+                  if (consecutiveObstructed >= 4) {
+                    setState(CAMERA_STATES.OBSTRUCTED, "Camera visibility is obstructed. Please uncover the camera and keep your face visible.");
+                    if (isActiveRef.current) onViolation('CAMERA_OBSTRUCTED');
+                  }
+                }
+              } else {
+                consecutiveObstructed = Math.max(0, consecutiveObstructed - 1);
+                if (consecutiveObstructed === 0) {
+                  setState(CAMERA_STATES.READY, null);
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Obstruction check failed:", e);
+          }
+          
           cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
         };
 
@@ -139,31 +160,18 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
 
       } catch (err) {
         console.error("Media devices error:", err);
-        setError("Camera permission is required for this proctored exam.");
-        onCameraStatus?.(false);
-        if (isActiveRef.current) {
-          onViolation('MEDIA_PERMISSION_DENIED');
-        }
+        setState(CAMERA_STATES.DENIED, "Camera permission is required for this proctored exam.");
+        if (isActiveRef.current) onViolation('MEDIA_PERMISSION_DENIED');
       }
     };
 
     startMedia();
 
     return () => {
-      if (cameraCheckTimeoutId) {
-        clearTimeout(cameraCheckTimeoutId);
-      }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      if (cameraCheckTimeoutId) clearTimeout(cameraCheckTimeoutId);
+      if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
     };
-  }, [onViolation, onCameraStatus, onCameraWarning]);
-
-  useEffect(() => {
-    if (isActive && error) {
-      onViolation('MEDIA_PERMISSION_DENIED');
-    }
-  }, [isActive, error, onViolation]);
+  }, [onViolation]);
 
   // Object Detection Loop (Mobile Phone)
   useEffect(() => {
@@ -207,17 +215,18 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
     return () => clearTimeout(timeoutId);
   }, [isActive, onViolation]);
 
-  if (error) {
+  if (cameraState === CAMERA_STATES.DENIED) {
     return (
       <div className="fixed bottom-4 right-4 w-48 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-xs shadow-lg z-50">
-        <p><strong>Error:</strong> {error}</p>
+        <p><strong>Error:</strong> {errorMsg}</p>
       </div>
     );
   }
 
-  if (!hasPermission) {
-    return null;
-  }
+  // Hide video frame completely if initializing to prevent flashing
+  const containerClass = cameraState === CAMERA_STATES.INITIALIZING 
+    ? 'hidden' 
+    : 'fixed bottom-4 right-4 w-32 h-24 bg-black rounded-lg overflow-hidden shadow-2xl border-2 border-primary/50 z-50 pointer-events-none opacity-80';
 
   return (
     <>
@@ -227,7 +236,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
           <p className="text-sm">Mobile phone detected in the camera view. Please keep external devices away during the assessment.</p>
         </div>
       )}
-      <div className="fixed bottom-4 right-4 w-32 h-24 bg-black rounded-lg overflow-hidden shadow-2xl border-2 border-primary/50 z-50 pointer-events-none opacity-80">
+      <div className={containerClass}>
         <video
           ref={videoRef}
           autoPlay

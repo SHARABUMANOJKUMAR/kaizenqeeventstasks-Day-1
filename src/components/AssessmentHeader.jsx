@@ -22,7 +22,15 @@ const AssessmentHeader = ({
         {/* Left: Back button + Logo + Title */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => {
+              if (document.fullscreenElement) {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
+              }
+              navigate('/');
+            }}
             className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium text-text-muted hover:text-primary hover:bg-primary-50 transition-colors shrink-0"
             title="Return to Bootcamp Home"
           >
