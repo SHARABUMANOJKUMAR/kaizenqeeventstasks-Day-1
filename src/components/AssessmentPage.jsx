@@ -329,17 +329,21 @@ const AssessmentPage = ({ studentData, onComplete }) => {
 
     try {
       // Resolve Google Sheets API URL based on bootcamp
-      let envKeyPrefix = "VITE_GOOGLE_SHEETS_API_URL_DAY";
+      let scriptURL = dayConfig.sheetsUrl || import.meta.env.VITE_GOOGLE_SHEETS_API_URL;
+      
       if (bootcampId === 'java-with-ai') {
-        envKeyPrefix = "VITE_JAVA_DAY";
+        if (dayConfig.id === 1) scriptURL = import.meta.env.VITE_JAVA_DAY_1 || scriptURL;
+        if (dayConfig.id === 2) scriptURL = import.meta.env.VITE_JAVA_DAY_2 || scriptURL;
+        if (dayConfig.id === 3) scriptURL = import.meta.env.VITE_JAVA_DAY_3 || scriptURL;
+        if (dayConfig.id === 4) scriptURL = import.meta.env.VITE_JAVA_DAY_4 || scriptURL;
+        if (dayConfig.id === 5) scriptURL = import.meta.env.VITE_JAVA_DAY_5 || scriptURL;
+      } else {
+        if (dayConfig.id === 1) scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL_DAY_1 || scriptURL;
+        if (dayConfig.id === 2) scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL_DAY_2 || scriptURL;
+        if (dayConfig.id === 3) scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL_DAY_3 || scriptURL;
+        if (dayConfig.id === 4) scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL_DAY_4 || scriptURL;
+        if (dayConfig.id === 5) scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL_DAY_5 || scriptURL;
       }
-
-      const scriptURL = 
-        import.meta.env[`${envKeyPrefix}_${dayConfig.id}`] ||
-        import.meta.env[`${envKeyPrefix}${dayConfig.id}`] ||
-        import.meta.env[`VITE_GOOGLE_SHEETS_API_URL_DAY_${dayConfig.id}`] || // Fallback to generic
-        dayConfig.sheetsUrl ||
-        import.meta.env.VITE_GOOGLE_SHEETS_API_URL;
       
       if (scriptURL) {
         await fetch(scriptURL, {
