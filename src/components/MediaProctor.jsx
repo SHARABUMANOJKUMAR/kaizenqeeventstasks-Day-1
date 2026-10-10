@@ -59,6 +59,8 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
         canvas.height = 64;
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
+        const startTime = Date.now();
+
         const checkCameraHealth = () => {
           if (!isActiveRef.current) {
             cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
@@ -67,16 +69,19 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
 
           if (streamRef.current && videoRef.current) {
             const videoTrack = streamRef.current.getVideoTracks()[0];
+            const isGracePeriod = Date.now() - startTime < 10000; // 10 seconds grace period for hardware init
             
             // 1. Check if track is muted, ended, or null
             if (!videoTrack || videoTrack.muted || videoTrack.readyState === 'ended' || videoRef.current.readyState < 2) {
-              consecutiveUnavailable++;
-              if (consecutiveUnavailable > 3) {
-                if (isCameraHealthy) {
-                  onViolation('CAMERA_UNAVAILABLE');
-                  isCameraHealthy = false;
-                  onCameraStatus?.(false);
-                  onCameraWarning?.("Your camera is unavailable. Your assessment has been saved and temporarily locked. Restore camera access to continue.");
+              if (!isGracePeriod) {
+                consecutiveUnavailable++;
+                if (consecutiveUnavailable > 3) {
+                  if (isCameraHealthy) {
+                    onViolation('CAMERA_UNAVAILABLE');
+                    isCameraHealthy = false;
+                    onCameraStatus?.(false);
+                    onCameraWarning?.("Your camera is unavailable. Your assessment has been saved and temporarily locked. Restore camera access to continue.");
+                  }
                 }
               }
               // Skip obstruction check if unavailable
