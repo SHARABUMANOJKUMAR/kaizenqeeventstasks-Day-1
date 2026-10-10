@@ -337,7 +337,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
         if (dayConfig.id === 3) scriptURL = import.meta.env.VITE_JAVA_DAY_3 || scriptURL;
         if (dayConfig.id === 4) scriptURL = import.meta.env.VITE_JAVA_DAY_4 || scriptURL;
         if (dayConfig.id === 5) scriptURL = import.meta.env.VITE_JAVA_DAY_5 || scriptURL;
-      } else {
+      } else if (bootcampId === 'python-with-ai') {
         if (dayConfig.id === 1) scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL_DAY_1 || scriptURL;
         if (dayConfig.id === 2) scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL_DAY_2 || scriptURL;
         if (dayConfig.id === 3) scriptURL = import.meta.env.VITE_GOOGLE_SHEETS_API_URL_DAY_3 || scriptURL;
