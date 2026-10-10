@@ -44,11 +44,8 @@ const BootcampHome = ({ studentData }) => {
       return;
     }
     const targetRoute = `/bootcamps/${bootcampConfig.slug}/day/${day.id}`;
-    if (studentData) {
-      navigate(targetRoute);
-    } else {
-      navigate(`/register?redirect=${encodeURIComponent(targetRoute)}`);
-    }
+    // Always ask for Registration Form to confirm details before starting
+    navigate(`/register?redirect=${encodeURIComponent(targetRoute)}`);
   };
 
   const colorClasses = {

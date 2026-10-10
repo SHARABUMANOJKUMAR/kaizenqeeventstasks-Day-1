@@ -51,7 +51,7 @@ const DayNavigation = ({ currentDayId, bootcampConfig }) => {
                 onClick={() => {
                   if (!isNavDisabled) {
                     const targetRoute = `/bootcamps/${bootcampConfig.slug}/day/${day.id}`;
-                    navigate(targetRoute);
+                    navigate(`/register?redirect=${encodeURIComponent(targetRoute)}`);
                   }
                 }}
                 disabled={isNavDisabled}
