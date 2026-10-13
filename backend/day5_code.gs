@@ -43,7 +43,7 @@ function doPost(e) {
     // Resolve Day identification for Day 5
     const dayNum = data.day || 5;
     const dayLabel = "Day " + dayNum;
-    const assessmentTitle = data.assessment || (dayLabel + " — Build, Deploy & AI Hackathon");
+    const assessmentTitle = data.assessment || (dayLabel + " — Git, GitHub & Docker Fundamentals");
 
     // Format time taken cleanly (e.g., "38m 20s")
     const timeTakenSec = data.timeTaken || 0;

@@ -1,20 +1,22 @@
 import React, { useEffect } from 'react';
 import { Clock3 } from 'lucide-react';
 
-const Timer = ({ timeRemaining, setTimeRemaining, onTimeUp }) => {
+const Timer = ({ timeRemaining, setTimeRemaining, onTimeUp, isActive }) => {
   
   useEffect(() => {
     if (timeRemaining <= 0) {
-      onTimeUp();
+      if (isActive) onTimeUp();
       return;
     }
+
+    if (!isActive) return;
 
     const timer = setInterval(() => {
       setTimeRemaining(prev => prev - 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeRemaining, setTimeRemaining, onTimeUp]);
+  }, [timeRemaining, setTimeRemaining, onTimeUp, isActive]);
 
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);

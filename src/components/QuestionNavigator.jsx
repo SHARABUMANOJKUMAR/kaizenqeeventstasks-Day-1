@@ -59,4 +59,4 @@ const QuestionNavigator = ({ questions, answers, visited, currentIndex, onNaviga
   );
 };
 
-export default QuestionNavigator;
+export default React.memo(QuestionNavigator);

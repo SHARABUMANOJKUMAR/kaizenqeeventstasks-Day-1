@@ -214,7 +214,7 @@ const MentorDashboard = () => {
                   <option value="2">Day 2: Data, APIs & Automation</option>
                   <option value="3">Day 3: Machine Learning</option>
                   <option value="4">Day 4: Generative AI</option>
-                  <option value="5">Day 5: Build & Deploy</option>
+                  <option value="5">Day 5: Git & Docker</option>
                 </select>
               </div>
 

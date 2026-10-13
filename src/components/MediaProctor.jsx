@@ -88,7 +88,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
 
         const checkCameraHealth = () => {
           if (!streamRef.current || !videoRef.current) {
-            cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
+            cameraCheckTimeoutId = setTimeout(checkCameraHealth, 2000);
             return;
           }
 
@@ -107,7 +107,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
                 if (isActiveRef.current) onViolation('CAMERA_UNAVAILABLE');
               }
             }
-            cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
+            cameraCheckTimeoutId = setTimeout(checkCameraHealth, 2000);
             return;
           } else {
             consecutiveUnavailable = 0;
@@ -154,7 +154,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
             console.error("Obstruction check failed:", e);
           }
           
-          cameraCheckTimeoutId = setTimeout(checkCameraHealth, 1000);
+          cameraCheckTimeoutId = setTimeout(checkCameraHealth, 2000);
         };
 
         checkCameraHealth();
@@ -180,7 +180,7 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
 
     const detectFrame = async () => {
       if (!isActiveRef.current || !modelRef.current || !videoRef.current || videoRef.current.readyState !== 4) {
-        timeoutId = setTimeout(detectFrame, 1000);
+        timeoutId = setTimeout(detectFrame, 3000);
         return;
       }
       
@@ -209,10 +209,10 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
       } catch (e) {
         console.error("Detection error", e);
       }
-      timeoutId = setTimeout(detectFrame, 1000);
+      timeoutId = setTimeout(detectFrame, 3000);
     };
 
-    timeoutId = setTimeout(detectFrame, 1000);
+    timeoutId = setTimeout(detectFrame, 3000);
     return () => clearTimeout(timeoutId);
   }, [isActive, onViolation]);
 
@@ -267,4 +267,4 @@ const MediaProctor = ({ onViolation, isActive, onCameraStatus, onCameraWarning }
   );
 };
 
-export default MediaProctor;
+export default React.memo(MediaProctor);

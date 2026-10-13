@@ -1,54 +1,58 @@
 export const day5Questions = [
+  // ---------------------------------------------------------
+  // PART A: 17 MCQs (1 mark each)
+  // Topics: Git & GitHub (Q1–Q8), Docker Fundamentals (Q9–Q17)
+  // ---------------------------------------------------------
   {
     id: 1,
     type: "mcq",
-    question: "What is **Streamlit** primarily used for in Python development?",
+    question: "What is **Git** and why is version control fundamental to software development?",
     options: [
-      "Rapidly building interactive web UIs and dashboards for data and AI apps using pure Python",
-      "Compiling Python into native mobile iOS applications",
-      "Replacing SQL databases in enterprise environments",
-      "Writing operating system drivers in Python"
+      "A distributed version control system that records changes, facilitates rollbacks, and coordinates team collaboration",
+      "A cloud database for storing relational SQL tables and queries",
+      "A compiler that translates Python code into native machine executables",
+      "A web application firewall designed to filter malicious HTTP traffic"
     ],
-    correctAnswer: "Rapidly building interactive web UIs and dashboards for data and AI apps using pure Python",
+    correctAnswer: "A distributed version control system that records changes, facilitates rollbacks, and coordinates team collaboration",
     marks: 1
   },
   {
     id: 2,
     type: "mcq",
-    question: "Which Streamlit command is used to render a text input box where users can type queries or prompts?",
+    question: "How does **Git** differ from **GitHub**?",
     options: [
-      "`st.text_input('Enter prompt')`",
-      "`st.prompt_box('Enter prompt')`",
-      "`st.create_field('Enter prompt')`",
-      "`st.get_text('Enter prompt')`"
+      "Git is a local version-control command-line tool, whereas GitHub is a cloud platform for hosting Git repositories and collaborating",
+      "Git is a proprietary cloud service, whereas GitHub is an open-source terminal command",
+      "Git is exclusively used for Python programs, whereas GitHub supports all programming languages",
+      "Git and GitHub are identical tools developed by the same operating system vendor"
     ],
-    correctAnswer: "`st.text_input('Enter prompt')`",
+    correctAnswer: "Git is a local version-control command-line tool, whereas GitHub is a cloud platform for hosting Git repositories and collaborating",
     marks: 1
   },
   {
     id: 3,
     type: "mcq",
-    question: "How do you allow users to upload files (such as PDFs, CSVs, or images) in a Streamlit app?",
+    question: "Which command initialises a brand-new Git repository in your current working directory?",
     options: [
-      "`st.file_uploader('Upload file')`",
-      "`st.open_file_dialog()`",
-      "`st.file_picker()`",
-      "`st.drag_and_drop()`"
+      "`git init`",
+      "`git create`",
+      "`git start`",
+      "`git setup`"
     ],
-    correctAnswer: "`st.file_uploader('Upload file')`",
+    correctAnswer: "`git init`",
     marks: 1
   },
   {
     id: 4,
     type: "mcq",
-    question: "Which Streamlit feature preserves state (such as chat messages or authentication) across script reruns?",
+    question: "What is the primary role of the **staging area** (index) accessed via `git add`?",
     options: [
-      "`st.session_state`",
-      "`st.cache_global`",
-      "`st.persistent_vars`",
-      "`st.cookies`"
+      "It acts as an intermediate staging step where developers select which changed files will be included in the next commit snapshot",
+      "It permanently deletes untracked files from the local filesystem",
+      "It immediately pushes changes directly to the remote GitHub repository",
+      "It automatically runs linting and formats code before saving"
     ],
-    correctAnswer: "`st.session_state`",
+    correctAnswer: "It acts as an intermediate staging step where developers select which changed files will be included in the next commit snapshot",
     marks: 1
   },
   {
@@ -67,185 +71,302 @@ export const day5Questions = [
   {
     id: 6,
     type: "mcq",
-    question: "Which command initialises a brand-new Git repository in your current working directory?",
+    question: "Which command sequence correctly stages all changes, commits them with a descriptive message, and pushes to `origin main`?",
     options: [
-      "`git init`",
-      "`git create`",
-      "`git start`",
-      "`git setup`"
+      "`git add .` → `git commit -m \"feature: add dockerfile\"` → `git push origin main`",
+      "`git push origin main` → `git commit` → `git add .`",
+      "`git init` → `git push origin main` → `git commit -m \"...\"`",
+      "`git clone` → `git pull origin main` → `git add .`"
     ],
-    correctAnswer: "`git init`",
+    correctAnswer: "`git add .` → `git commit -m \"feature: add dockerfile\"` → `git push origin main`",
     marks: 1
   },
   {
     id: 7,
     type: "mcq",
-    question: "When deploying a Python Streamlit app to Streamlit Community Cloud or Render, which file lists all third-party libraries needed to run the app?",
+    question: "Which command creates a new branch named `feature-auth` and switches to it in a single operation?",
     options: [
-      "`requirements.txt`",
-      "`packages.json`",
-      "`libs.config`",
-      "`python_modules.txt`"
+      "`git switch -c feature-auth`",
+      "`git branch --jump feature-auth`",
+      "`git checkout feature-auth --make`",
+      "`git push -b feature-auth`"
     ],
-    correctAnswer: "`requirements.txt`",
+    correctAnswer: "`git switch -c feature-auth`",
     marks: 1
   },
   {
     id: 8,
     type: "mcq",
-    question: "How should secrets and API keys be configured when deploying a Streamlit application to the cloud?",
+    question: "What causes a **Git merge conflict**, and how do developers resolve it?",
     options: [
-      "Using Streamlit Secrets management (`st.secrets`) or environment variables, never hardcoded in source code",
-      "Adding them directly to the `README.md` file",
-      "Committing an unencrypted `.env` file to the GitHub repository",
-      "Passing them as cleartext URL query parameters"
+      "Competing changes on the same line across merging branches; resolved by manually editing conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), staging, and committing",
+      "A broken network connection; resolved by restarting the local terminal",
+      "Exceeding GitHub's free repository size; resolved by running `git prune`",
+      "An outdated Git version; resolved by running `git upgrade`"
     ],
-    correctAnswer: "Using Streamlit Secrets management (`st.secrets`) or environment variables, never hardcoded in source code",
+    correctAnswer: "Competing changes on the same line across merging branches; resolved by manually editing conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), staging, and committing",
     marks: 1
   },
   {
     id: 9,
     type: "mcq",
-    question: "Which Git command is used to record staged changes to the repository history?",
+    question: "What is **Docker**, and what fundamental problem does containerization solve?",
     options: [
-      "`git commit -m \"message\"`",
-      "`git stage -m \"message\"`",
-      "`git save`",
-      "`git push`"
+      "A platform for packaging applications and dependencies into standardized containers, solving the 'works on my machine' problem",
+      "A relational database management system for persistent file storage",
+      "A continuous integration tool that compiles Python scripts into byte code",
+      "A cloud networking switch that assigns IP addresses to local servers"
     ],
-    correctAnswer: "`git commit -m \"message\"`",
+    correctAnswer: "A platform for packaging applications and dependencies into standardized containers, solving the 'works on my machine' problem",
     marks: 1
   },
   {
     id: 10,
     type: "mcq",
-    question: "What Streamlit container is commonly used to create interactive chat applications with assistant/user bubbles?",
+    question: "How do **Docker containers** differ from traditional **Virtual Machines (VMs)**?",
     options: [
-      "`st.chat_message()`",
-      "`st.message_box()`",
-      "`st.conversation_bubble()`",
-      "`st.dialog_chat()`"
+      "Containers share the host operating system kernel and run as isolated lightweight processes, whereas VMs require a hypervisor and a complete guest OS",
+      "Containers require dedicated physical hardware, whereas VMs run inside web browsers",
+      "Containers can only run compiled languages, whereas VMs run interpreted scripts",
+      "Virtual Machines boot up in seconds, whereas Docker containers require several minutes"
     ],
-    correctAnswer: "`st.chat_message()`",
+    correctAnswer: "Containers share the host operating system kernel and run as isolated lightweight processes, whereas VMs require a hypervisor and a complete guest OS",
     marks: 1
   },
   {
     id: 11,
     type: "mcq",
-    question: "What is the purpose of `st.cache_data` in Streamlit?",
+    question: "What is the conceptual relationship between a **Docker Image** and a **Docker Container**?",
     options: [
-      "To cache the output of expensive data loading or computation so it doesn't re-run on every user interaction",
-      "To delete temporary browser files",
-      "To compress images before display",
-      "To restart the server automatically"
+      "An image is a read-only immutable template, while a container is an isolated, running instance instantiated from that image",
+      "An image is a running process, while a container is a static text file stored on GitHub",
+      "An image is a compressed zip file of source code, while a container is a virtual hard drive",
+      "Docker images and containers are interchangeable terms with no technical distinction"
     ],
-    correctAnswer: "To cache the output of expensive data loading or computation so it doesn't re-run on every user interaction",
+    correctAnswer: "An image is a read-only immutable template, while a container is an isolated, running instance instantiated from that image",
     marks: 1
   },
   {
     id: 12,
     type: "mcq",
-    question: "What does the `git clone <url>` command do?",
+    question: "In a `Dockerfile`, what is the critical difference between `RUN` and `CMD`?",
     options: [
-      "Downloads an existing remote GitHub repository to your local machine",
-      "Uploads your local files to GitHub",
-      "Deletes an existing branch",
-      "Merges two pull requests"
+      "`RUN` executes at build time to produce new filesystem layers, while `CMD` defines the default command executed when the container starts",
+      "`RUN` starts the container in production, while `CMD` runs only during development testing",
+      "`RUN` copies files from GitHub, while `CMD` compiles Python files into wheels",
+      "`RUN` executes on the host OS, while `CMD` is ignored unless explicitly enabled"
     ],
-    correctAnswer: "Downloads an existing remote GitHub repository to your local machine",
+    correctAnswer: "`RUN` executes at build time to produce new filesystem layers, while `CMD` defines the default command executed when the container starts",
     marks: 1
   },
   {
     id: 13,
     type: "mcq",
-    question: "In a professional software project, what is the primary role of the `README.md` file?",
+    question: "What does the command `docker run -d -p 3000:80 -e NODE_ENV=production my-web-app` accomplish?",
     options: [
-      "To provide clear instructions on what the project is, how to install dependencies, setup `.env`, and run the app",
-      "To store database passwords",
-      "To serve as the production web server",
-      "To store Python bytecode"
+      "Runs `my-web-app` in detached mode (background), maps host port 3000 to container port 80, and sets the `NODE_ENV` environment variable",
+      "Compiles `my-web-app` on port 3000 and uploads the binary to Docker Hub",
+      "Stops all containers listening on port 80 and logs memory consumption to console",
+      "Forwards container port 3000 to host port 80 in interactive foreground mode"
     ],
-    correctAnswer: "To provide clear instructions on what the project is, how to install dependencies, setup `.env`, and run the app",
+    correctAnswer: "Runs `my-web-app` in detached mode (background), maps host port 3000 to container port 80, and sets the `NODE_ENV` environment variable",
     marks: 1
   },
   {
     id: 14,
     type: "mcq",
-    question: "Which Streamlit function easily displays interactive tabular data or Pandas DataFrames?",
+    question: "Which command shows both currently active and previously stopped Docker containers?",
     options: [
-      "`st.dataframe(df)`",
-      "`st.show_grid(df)`",
-      "`st.render_sheet(df)`",
-      "`st.print_table(df)`"
+      "`docker ps -a`",
+      "`docker list --all-active`",
+      "`docker status -v`",
+      "`docker images --containers`"
     ],
-    correctAnswer: "`st.dataframe(df)`",
+    correctAnswer: "`docker ps -a`",
     marks: 1
   },
   {
     id: 15,
     type: "mcq",
-    question: "When presenting an AI hackathon project to judges, what is the most important element to lead with?",
+    question: "Which command streams the console logs generated by a running container named `ai-service`?",
     options: [
-      "The problem being solved, the real-world value proposition, and a working live demo",
-      "Reading 500 lines of backend boilerplate code line-by-line",
-      "Complaining about cloud server latency",
-      "Showing the package installation logs"
+      "`docker logs ai-service`",
+      "`docker inspect --terminal ai-service`",
+      "`docker read-console ai-service`",
+      "`docker view-output ai-service`"
     ],
-    correctAnswer: "The problem being solved, the real-world value proposition, and a working live demo",
+    correctAnswer: "`docker logs ai-service`",
     marks: 1
   },
   {
     id: 16,
     type: "mcq",
-    question: "Logic: If `st.session_state` is a dictionary-like object, what is the standard idiom to initialize `'messages'` only once?",
+    question: "Which command downloads a Docker image from a remote registry (like Docker Hub) without immediately launching it?",
     options: [
-      "`if 'messages' not in st.session_state: st.session_state.messages = []`",
-      "`st.session_state.messages = []` on line 1 of every rerun",
-      "`st.reset_state('messages')`",
-      "`while not st.session_state: create('messages')`"
+      "`docker pull python:3.11-slim`",
+      "`docker fetch python:3.11-slim`",
+      "`docker clone python:3.11-slim`",
+      "`docker get python:3.11-slim`"
     ],
-    correctAnswer: "`if 'messages' not in st.session_state: st.session_state.messages = []`",
+    correctAnswer: "`docker pull python:3.11-slim`",
     marks: 1
   },
   {
     id: 17,
     type: "mcq",
-    question: "Logic: Which command sequence properly commits changes and pushes to a remote repository's main branch?",
+    question: "What is **Docker Compose** primarily used for?",
     options: [
-      "`git add .` → `git commit -m \"...\"` → `git push origin main`",
-      "`git push` → `git add .` → `git commit`",
-      "`git init` → `git push origin main`",
-      "`git clone` → `git pull`"
+      "Defining and managing multi-container applications (e.g., app, database, cache) using a declarative YAML configuration file",
+      "Writing unit tests for Python backend applications",
+      "Optimizing SQL queries inside PostgreSQL containers",
+      "Compiling Docker images into binary executables"
     ],
-    correctAnswer: "`git add .` → `git commit -m \"...\"` → `git push origin main`",
+    correctAnswer: "Defining and managing multi-container applications (e.g., app, database, cache) using a declarative YAML configuration file",
     marks: 1
   },
+
+  // ---------------------------------------------------------
+  // PART B: 4 Practical Coding Tasks (2 marks each)
+  // ---------------------------------------------------------
   {
     id: 18,
     type: "code",
-    question: "Write a Python function `generate_requirements_txt(packages)` that takes a dictionary of package names and version strings (e.g. `{'streamlit': '1.32.0', 'pandas': '2.2.0'}`) and returns a formatted multi-line string suitable for `requirements.txt` with `==` pinned versions.",
-    starterCode: "def generate_requirements_txt(packages):\n    # Write your code here\n    pass\n",
+    question: "Write a Python function `stage_and_commit(working_files, staged_files, commit_message)` that simulates basic Git staging and committing. The function should return a dict with `committed_files` (a copy of staged files), `remaining_staged` (an empty dict), and `commit_status` ('success' if staged_files was non-empty, else 'empty_commit').",
+    starterCode: `def stage_and_commit(working_files, staged_files, commit_message):
+    """
+    Simulates Git staging and commit creation.
+    Returns: dict with 'committed_files', 'remaining_staged', and 'commit_status'
+    """
+    if not staged_files:
+        return {
+            "committed_files": {},
+            "remaining_staged": {},
+            "commit_status": "empty_commit"
+        }
+    
+    return {
+        "committed_files": dict(staged_files),
+        "remaining_staged": {},
+        "commit_status": "success",
+        "message": commit_message
+    }
+
+# Example test:
+if __name__ == "__main__":
+    result = stage_and_commit({"main.py": "print('ok')"}, {"main.py": "print('ok')"}, "Initial commit")
+    print("Commit result:", result)
+`,
     marks: 2
   },
   {
     id: 19,
     type: "code",
-    question: "Write a Python function `validate_env_variables(required_keys, env_dict)` that checks if all `required_keys` exist and have non-empty string values in `env_dict`. Return a tuple `(is_valid, missing_keys)` where `missing_keys` is a list of keys that were absent or empty.",
-    starterCode: "def validate_env_variables(required_keys, env_dict):\n    # Write your code here\n    pass\n",
+    question: "Write a Python function `parse_git_conflict(conflict_text)` that parses standard Git conflict markers (`<<<<<<< HEAD`, `=======`, `>>>>>>> feature`) and extracts `head_content` and `incoming_content` as trimmed strings.",
+    starterCode: `def parse_git_conflict(conflict_text):
+    """
+    Parses conflict markers in a file string.
+    Returns a dict with 'head_content' and 'incoming_content'.
+    """
+    lines = conflict_text.strip().split('\\n')
+    head_lines = []
+    incoming_lines = []
+    
+    in_head = False
+    in_incoming = False
+    
+    for line in lines:
+        if line.startswith("<<<<<<<"):
+            in_head = True
+            in_incoming = False
+        elif line.startswith("======="):
+            in_head = False
+            in_incoming = True
+        elif line.startswith(">>>>>>>"):
+            in_incoming = False
+        elif in_head:
+            head_lines.append(line)
+        elif in_incoming:
+            incoming_lines.append(line)
+            
+    return {
+        "head_content": "\\n".join(head_lines).strip(),
+        "incoming_content": "\\n".join(incoming_lines).strip()
+    }
+
+# Example test:
+if __name__ == "__main__":
+    sample = \"\"\"
+<<<<<<< HEAD
+API_URL = "http://localhost:8000"
+=======
+API_URL = "https://api.production.com"
+>>>>>>> feature-deploy
+\"\"\"
+    print(parse_git_conflict(sample))
+`,
     marks: 2
   },
   {
     id: 20,
     type: "code",
-    question: "Write a Python function `format_chat_display(messages)` that takes a list of chat message dicts `[{'role': 'user', 'content': 'hi'}, {'role': 'assistant', 'content': 'hello'}]` and returns a formatted string where each line is `[Role]: Content`.",
-    starterCode: "def format_chat_display(messages):\n    # Write your code here\n    pass\n",
+    question: "Write a Python function `build_docker_run_cmd(image, host_port, container_port, env_vars=None, detached=True)` that constructs the exact `docker run` command string with `-d`, `-p`, and sorted `-e KEY=VALUE` flags.",
+    starterCode: `def build_docker_run_cmd(image, host_port, container_port, env_vars=None, detached=True):
+    """
+    Constructs a docker run command string.
+    """
+    cmd = ["docker", "run"]
+    if detached:
+        cmd.append("-d")
+    if host_port and container_port:
+        cmd.append(f"-p {host_port}:{container_port}")
+    if env_vars:
+        for k in sorted(env_vars.keys()):
+            cmd.append(f"-e {k}={env_vars[k]}")
+    cmd.append(image)
+    return " ".join(cmd)
+
+# Example test:
+if __name__ == "__main__":
+    cmd = build_docker_run_cmd("python:3.11-slim", 8000, 8000, {"PORT": "8000", "ENV": "prod"}, True)
+    print("Docker command:", cmd)
+`,
     marks: 2
   },
   {
     id: 21,
     type: "code",
-    question: "Write a Python function `build_product_pitch(project_name, target_audience, core_benefit)` that returns a clean marketing one-liner: `\"{project_name} empowers {target_audience} to {core_benefit}.\"`",
-    starterCode: "def build_product_pitch(project_name, target_audience, core_benefit):\n    # Write your code here\n    pass\n",
+    question: "Write a Python function `validate_dockerfile_syntax(dockerfile_content)` that verifies whether a Dockerfile string starts with a `FROM` instruction and specifies at least one `CMD` instruction. Return a tuple `(is_valid: bool, errors: list)`.",
+    starterCode: `def validate_dockerfile_syntax(dockerfile_content):
+    """
+    Validates that a Dockerfile begins with FROM and defines a CMD.
+    Returns (is_valid, errors).
+    """
+    lines = [l.strip() for l in dockerfile_content.strip().split('\\n') if l.strip() and not l.strip().startswith('#')]
+    errors = []
+    
+    if not lines:
+        return False, ["Empty Dockerfile"]
+        
+    first_cmd = lines[0].split()[0].upper()
+    if first_cmd != "FROM":
+        errors.append("Dockerfile must begin with a FROM instruction.")
+        
+    has_cmd = any(l.split()[0].upper() == "CMD" for l in lines)
+    if not has_cmd:
+        errors.append("Dockerfile must specify a CMD instruction.")
+        
+    return len(errors) == 0, errors
+
+# Example test:
+if __name__ == "__main__":
+    df = \"\"\"
+FROM python:3.11-slim
+WORKDIR /app
+COPY . .
+CMD ["python", "app.py"]
+\"\"\"
+    print("Validation:", validate_dockerfile_syntax(df))
+`,
     marks: 2
   }
 ];

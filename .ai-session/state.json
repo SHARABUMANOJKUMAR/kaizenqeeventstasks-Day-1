@@ -1,0 +1,20 @@
+{
+  "last_updated": "2026-10-13T07:38:00+05:30",
+  "completed": [
+    "Configured Task 5 / Day 5 exclusively for Git & GitHub and Docker Fundamentals",
+    "Updated genaiDay5Questions.js with 15 MCQs and 2 coding challenges covering Git & GitHub and Docker Fundamentals",
+    "Updated genaiBootcampDays.js Day 5 metadata with Git & GitHub and Docker Fundamentals topics and route",
+    "Updated day5Questions.js with 17 MCQs and 4 coding challenges covering Git & GitHub and Docker Fundamentals",
+    "Updated bootcampDays.js Day 5 metadata with Git & GitHub and Docker Fundamentals",
+    "Updated backend Apps Script titles for Day 5 in day5_code.gs and genai_day5_code.gs",
+    "Updated MentorDashboard Day 5 filter option label",
+    "Verified all Day 1–4 questions, tasks, scores, and configurations remain strictly untouched"
+  ],
+  "in_progress": [],
+  "pending": [],
+  "decisions": [
+    "Maintained exact existing assessment structures (15 MCQs + 2 coding challenges for GenAI Day 5; 17 MCQs + 4 coding challenges for Python Day 5) to guarantee full compatibility with existing Google Sheets backends, proctoring, scoring, and UI components",
+    "Ensured all MCQ options are formatted as string arrays conforming with MCQQuestion component requirements to prevent rendering and scoring discrepancies"
+  ],
+  "blockers": []
+}

@@ -78,4 +78,4 @@ const DayNavigation = ({ currentDayId, bootcampConfig }) => {
   );
 };
 
-export default DayNavigation;
+export default React.memo(DayNavigation);

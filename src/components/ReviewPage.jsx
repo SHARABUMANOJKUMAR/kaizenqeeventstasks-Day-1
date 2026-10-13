@@ -87,4 +87,4 @@ const ReviewPage = ({ questions, answers, visited, onNavigate, onSubmitClick }) 
   );
 };
 
-export default ReviewPage;
+export default React.memo(ReviewPage);

@@ -225,6 +225,44 @@ const AssessmentPage = ({ studentData, onComplete }) => {
     };
   }, [hasStartedExam, isExamLocked]);
 
+  const handleAnswer = useCallback((questionId, answer) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+  }, []);
+
+  const handleNavigate = useCallback((index) => {
+    setCurrentQuestionIndex(index);
+    setVisited(prev => prev.includes(index) ? prev : [...prev, index]);
+    setShowReview(false);
+    setShowMobileNav(false);
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setCurrentQuestionIndex(prev => {
+      if (questions && prev < questions.length - 1) {
+        const nextIdx = prev + 1;
+        setVisited(v => v.includes(nextIdx) ? v : [...v, nextIdx]);
+        return nextIdx;
+      }
+      setShowReview(true);
+      return prev;
+    });
+  }, [questions]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentQuestionIndex(prev => {
+      if (prev > 0) {
+        const prevIdx = prev - 1;
+        setVisited(v => v.includes(prevIdx) ? v : [...v, prevIdx]);
+        return prevIdx;
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleTimeUp = useCallback(() => {
+    setShowSubmitModal(true);
+  }, []);
+
   // Validation: If Day does not exist
   if (!dayConfig || !questions) {
     return (
@@ -254,37 +292,6 @@ const AssessmentPage = ({ studentData, onComplete }) => {
       />
     );
   }
-
-  const handleAnswer = (questionId, answer) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
-  };
-
-  const handleNavigate = (index) => {
-    setCurrentQuestionIndex(index);
-    if (!visited.includes(index)) {
-      setVisited(prev => [...prev, index]);
-    }
-    setShowReview(false);
-    setShowMobileNav(false);
-  };
-
-  const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      handleNavigate(currentQuestionIndex + 1);
-    } else {
-      setShowReview(true);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentQuestionIndex > 0) {
-      handleNavigate(currentQuestionIndex - 1);
-    }
-  };
-
-  const handleTimeUp = () => {
-    setShowSubmitModal(true);
-  };
 
   const submitAssessment = async () => {
     // Enforce Day 5 Submission Time (Oct 2, 2026 at 17:35 IST)
@@ -449,6 +456,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
           timeRemaining={timeRemaining} 
           setTimeRemaining={setTimeRemaining}
           onTimeUp={handleTimeUp}
+          isActive={hasStartedExam && !isExamLocked}
         />
 
       <MediaProctor 
@@ -634,7 +642,7 @@ const AssessmentPage = ({ studentData, onComplete }) => {
                 answers={answers}
                 visited={visited}
                 onNavigate={handleNavigate}
-                onSubmitClick={() => setShowSubmitModal(true)}
+                onSubmitClick={handleTimeUp}
               />
             ) : (
               <QuestionCard

@@ -121,10 +121,10 @@ export const bootcampDays = [
   {
     id: 5,
     dayNumber: 5,
-    title: "Build, Deploy & AI Hackathon",
-    shortTitle: "Build & Deploy",
-    description: "Turn your Python skills into a real, deployable AI product ready for user showcase.",
-    topics: ["Streamlit", "GitHub", "Deployment", "AI Product", "Presentation"],
+    title: "Git, GitHub & Docker Fundamentals",
+    shortTitle: "Git & Docker",
+    description: "Master Git and GitHub for version control and Docker fundamentals for packaging and running containerized applications.",
+    topics: ["Git", "GitHub", "Docker", "Containers", "Docker Compose"],
     status: "available", // Unlocked & Connected
     durationMinutes: 45,
     totalQuestions: 21,

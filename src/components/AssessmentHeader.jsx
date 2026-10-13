@@ -8,7 +8,8 @@ const AssessmentHeader = ({
   dayConfig,
   timeRemaining, 
   setTimeRemaining, 
-  onTimeUp 
+  onTimeUp,
+  isActive
 }) => {
   const navigate = useNavigate();
 
@@ -82,6 +83,7 @@ const AssessmentHeader = ({
             timeRemaining={timeRemaining} 
             setTimeRemaining={setTimeRemaining} 
             onTimeUp={onTimeUp} 
+            isActive={isActive}
           />
         </div>
       </div>

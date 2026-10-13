@@ -22,4 +22,4 @@ const ProgressBar = ({ current, total }) => {
   );
 };
 
-export default ProgressBar;
+export default React.memo(ProgressBar);
